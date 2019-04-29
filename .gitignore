@@ -1,0 +1,4 @@
+src/grammar.c
+src/grammar.out
+src/lex.yy.c
+bin/
