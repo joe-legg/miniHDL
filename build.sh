@@ -1,3 +1,8 @@
+if [ ! -d "bin" ]
+then
+    mkdir bin
+fi
+
 echo "Compiling lemon grammar"
 lemon src/grammar.y
 echo "Compiling flex lexer."
