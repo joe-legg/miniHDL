@@ -67,6 +67,6 @@ class ExpressionStatementNode : public StatementNode
 };
 
 // Print ast
-void printAST(Node *baseNode);
+void printAST(Node &baseNode);
 
 #endif

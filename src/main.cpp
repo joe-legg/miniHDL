@@ -2,7 +2,8 @@
 
 int main()
 {
-    printAST(parse());
+    Node *ast = parse();
+    printAST(ast);
 
     return 0;
 }

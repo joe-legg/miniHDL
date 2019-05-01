@@ -1,9 +1,10 @@
 #include "ast.hpp"
 #include <iostream>
 
-void printAST(Node *baseNode)
+void printAST(Node &baseNode)
 {
-    std::cout << baseNode->getString();
+    std::cout << "Printing AST: \n";
+    std::cout << baseNode.getString();
 }
 
 // Get string methods

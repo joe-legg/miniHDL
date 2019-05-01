@@ -4,9 +4,9 @@
     #include "ast.hpp"
 
     extern int yylineno;
-
-    BlockNode *programBlock;
 }
+
+%extra_argument { Node *rootNode }
 
 %syntax_error
 {
@@ -39,7 +39,7 @@
 %left OR.
 %right NOT.
 
-program ::= statements(B). { programBlock = B; }
+program ::= statements(B). { rootNode = B; }
 
 statements(A) ::= statement(B). { A = new BlockNode; A->statements.push_back(B); }
 statements ::= statements(B) statement(C). { B->statements.push_back(C); }
