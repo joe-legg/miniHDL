@@ -1,17 +1,17 @@
 #include "ast.hpp"
 #include <iostream>
 
-void printAST(Node &baseNode)
+void printAST(Node *baseNode)
 {
     std::cout << "Printing AST: \n";
-    std::cout << baseNode.getString();
+    std::cout << baseNode->getString();
 }
 
 // Get string methods
-std::string Node::getString()
-{
-    return "Node \n";
-}
+//std::string Node::getString()
+//{
+//    return "Node \n";
+//}
 
 std::string ExpressionNode::getString()
 {
