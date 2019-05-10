@@ -52,7 +52,7 @@ statement(A) ::= expr(B) SEMICOLON. { A = new ExpressionStatementNode(*B); }
 expr(A) ::= LBRACKET expr(B) RBRACKET. { A = B; }
 expr(A) ::= expr(B) AND expr(D). { A = new BinaryOperationNode("and", *B, *D); }
 expr(A) ::= expr(B) OR expr(D). { A = new BinaryOperationNode("or", *B, *D); }
-// expr ::= NOT expr.
+expr(A) ::= NOT expr(C). { A = new UnaryOperationNode("not", *C); }
 expr(A) ::= TRUE. { A = new BoolNode(true); }
 expr(A) ::= FALSE. { A = new BoolNode(false); }
 

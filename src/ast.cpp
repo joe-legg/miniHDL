@@ -22,7 +22,14 @@ std::string BoolNode::getString()
 
 std::string BinaryOperationNode::getString()
 {
-    return "Binary Operation: {" + left.getString() + " Operator: " + operation + " " + right.getString() + "}";
+    return "Binary Operation: {" + left.getString() + " Operator: " + operation
+            + " " + right.getString() + "}";
+}
+
+std::string UnaryOperationNode::getString()
+{
+    return "Unary Operation: { " + expr.getString() + " Operator: " + operation + 
+            + "}";
 }
 
 std::string IdentifierNode::getString()

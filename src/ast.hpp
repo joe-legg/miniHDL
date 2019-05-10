@@ -28,14 +28,26 @@ class BoolNode : public ExpressionNode
 };
 
 // Binary operation
-class BinaryOperationNode: public ExpressionNode
+class BinaryOperationNode : public ExpressionNode
 {
   public:
     const char *operation;
     ExpressionNode &left;
     ExpressionNode &right;
     std::string getString();
-    BinaryOperationNode(const char *op, ExpressionNode &left, ExpressionNode &right): operation(op), left(left), right(right) {}
+    BinaryOperationNode(const char *op, ExpressionNode &left,
+            ExpressionNode &right): operation(op), left(left), right(right) {}
+};
+
+// Unary operation
+class UnaryOperationNode : public ExpressionNode
+{
+  public:
+    const char *operation;
+    ExpressionNode &expr;
+    std::string getString();
+    UnaryOperationNode(const char *operation, ExpressionNode &expr):
+            operation(operation), expr(expr) {}
 };
 
 // Identifier
