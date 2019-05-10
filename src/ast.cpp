@@ -1,33 +1,28 @@
 #include "ast.hpp"
 #include <iostream>
 
-void printAST(Node *baseNode)
-{
-    std::cout << "Printing AST: \n";
-    std::cout << baseNode->getString();
-}
-
 // Get string methods
-//std::string Node::getString()
-//{
-//    return "Node \n";
-//}
+
+std::string Node::getString()
+{
+    return "Node\n";
+}
 
 std::string ExpressionNode::getString()
 {
-    return "Expression \n";
+    return "Expression\n";
 }
 
-std::string BitNode::getString()
+std::string BoolNode::getString()
 {
-    std::string str = "Bit. Value : ";
-    str += value ? "1\n" : "0\n";
+    std::string str = "Bit: ";
+    str += value ? "1" : "0";
     return str;
 }
 
-std::string BinaryOperatorNode::getString()
+std::string BinaryOperationNode::getString()
 {
-    return left.getString() + operation + right.getString() + "\n";
+    return "Binary Operation: {" + left.getString() + " Operator: " + operation + " " + right.getString() + "}";
 }
 
 std::string IdentifierNode::getString()
@@ -37,18 +32,18 @@ std::string IdentifierNode::getString()
 
 std::string StatementNode::getString()
 {
-    return "Statement \n";
+    return "Statement\n";
 }
 
 std::string BlockNode::getString()
 {
     std::string str;
     for (long unsigned int i = 0; i < statements.size(); i++)
-        str += statements[i]->getString();
-    return str + "\n";
+        str += " " + statements[i]->getString();
+    return "Block of statements: {" + str + "}";
 }
 
 std::string ExpressionStatementNode::getString()
 {
-    return expr.getString() + "\n";
+    return "Expression: {" + expr.getString() + "}";
 }

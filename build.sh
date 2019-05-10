@@ -4,8 +4,10 @@ then
 fi
 
 echo "Compiling lemon grammar"
-lemon src/grammar.y
+lemon -s src/grammar.y 
+mv src/grammar.h src/grammar.hpp
+mv src/grammar.c src/grammar.cpp
 echo "Compiling flex lexer."
-flex -o src/lex.yy.c src/lexer.l
+flex -o src/lex.yy.cpp src/lexer.l
 echo "Compiling C/C++"
-g++ -o bin/bool-logic -Wall src/grammar.c src/ast.cpp src/parser.cpp src/main.cpp src/codeGen.cpp src/lex.yy.c
+g++ -o bin/bool-logic -Wall src/grammar.cpp src/ast.cpp src/main.cpp src/codeGen.cpp src/lex.yy.cpp

@@ -18,24 +18,27 @@ class ExpressionNode : public Node
     std::string getString();
 };
 
-class BitNode : public ExpressionNode
+// Boolean value
+class BoolNode : public ExpressionNode
 {
   public:
     bool value;
-    BitNode(bool val): value(val) {}
+    BoolNode(bool val): value(val) {}
     std::string getString();
 };
 
-class BinaryOperatorNode : public ExpressionNode
+// Binary operation
+class BinaryOperationNode: public ExpressionNode
 {
   public:
     const char *operation;
     ExpressionNode &left;
     ExpressionNode &right;
     std::string getString();
-    BinaryOperatorNode(const char *op, ExpressionNode &left, ExpressionNode &right): operation(op), left(left), right(right) {}
+    BinaryOperationNode(const char *op, ExpressionNode &left, ExpressionNode &right): operation(op), left(left), right(right) {}
 };
 
+// Identifier
 class IdentifierNode : public ExpressionNode
 {
   public:
@@ -51,6 +54,7 @@ class StatementNode : public Node
     std::string getString();
 };
 
+// Block of statements
 class BlockNode : public StatementNode
 {
   public:
@@ -58,6 +62,7 @@ class BlockNode : public StatementNode
     std::string getString();
 };
 
+// Expression statement
 class ExpressionStatementNode : public StatementNode
 {
   public:
@@ -65,8 +70,5 @@ class ExpressionStatementNode : public StatementNode
     std::string getString();
     ExpressionStatementNode(ExpressionNode &expr): expr(expr) {}
 };
-
-// Print ast
-void printAST(Node *baseNode);
 
 #endif
