@@ -4,7 +4,7 @@ then
 fi
 
 echo "Compiling lemon grammar"
-lemon -s src/grammar.y 
+lemon src/grammar.y 
 mv src/grammar.h src/grammar.hpp
 mv src/grammar.c src/grammar.cpp
 echo "Compiling flex lexer."
