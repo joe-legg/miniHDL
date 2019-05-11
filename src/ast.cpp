@@ -34,7 +34,7 @@ std::string UnaryOperationNode::getString()
 
 std::string IdentifierNode::getString()
 {
-    return ident + "\n";
+    return "Identifier: " + ident;
 }
 
 std::string StatementNode::getString()

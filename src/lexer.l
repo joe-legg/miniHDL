@@ -20,6 +20,8 @@ false return TOK_FALSE;
 ")" return TOK_RBRACKET;
 ";" return TOK_SEMICOLON;
 
+[_a-zA-Z][_a-zA-Z0-9]* return TOK_IDENT;
+
 " " {}
 \n {}
 \t {}

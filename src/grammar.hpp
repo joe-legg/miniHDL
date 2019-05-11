@@ -6,3 +6,4 @@
 #define TOK_RBRACKET                         6
 #define TOK_TRUE                             7
 #define TOK_FALSE                            8
+#define TOK_IDENT                            9

@@ -1,3 +1,1 @@
-(true and true) and false;
-false or true;
-!true;
+true or ident;

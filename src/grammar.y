@@ -2,7 +2,8 @@
 {
     #include <iostream>
     #include "ast.hpp"
-    
+    #include <string.h> 
+
     extern int yylineno;
 
     Node *rootNode = new Node;
@@ -32,35 +33,35 @@
 %token_prefix TOK_
 %token_type   { const char * }
 
-%type statements { BlockNode * }
-%type program    { BlockNode * }
-%type statement  { StatementNode * }
-%type expr       { ExpressionNode * }
-
 %left AND.
 %left OR.
 %right NOT.
 
+%type program { BlockNode * }
 program ::= statements(B). { rootNode = B; }
 
-statements(A) ::= statement(B). { A = new BlockNode; A->statements.push_back(B); }
+%type statements { BlockNode * }
+statements(A) ::= statement(B).            { A = new BlockNode; A->statements.push_back(B); }
 statements ::= statements(B) statement(C). { B->statements.push_back(C); }
 
+%type statement { StatementNode * }
 // Expression statement
 statement(A) ::= expr(B) SEMICOLON. { A = new ExpressionStatementNode(*B); } 
 
+%type expr { ExpressionNode * }
 expr(A) ::= LBRACKET expr(B) RBRACKET. { A = B; }
-expr(A) ::= expr(B) AND expr(D). { A = new BinaryOperationNode("and", *B, *D); }
-expr(A) ::= expr(B) OR expr(D). { A = new BinaryOperationNode("or", *B, *D); }
-expr(A) ::= NOT expr(C). { A = new UnaryOperationNode("not", *C); }
-expr(A) ::= TRUE. { A = new BoolNode(true); }
-expr(A) ::= FALSE. { A = new BoolNode(false); }
+expr(A) ::= expr(B) AND expr(D).       { A = new BinaryOperationNode("and", *B, *D); }
+expr(A) ::= expr(B) OR expr(D).        { A = new BinaryOperationNode("or", *B, *D); }
+expr(A) ::= NOT expr(C).               { A = new UnaryOperationNode("not", *C); }
+expr(A) ::= TRUE.                      { A = new BoolNode(true); }
+expr(A) ::= FALSE.                     { A = new BoolNode(false); }
+expr(A) ::= IDENT(B).                  { A = new IdentifierNode(B); }
 
 %code
 {
-    extern char *yytext;
     extern int yylex();
-    
+    extern char *yytext;
+
     Node *parse()
     {
         void *parser = ParseAlloc(malloc);
@@ -70,7 +71,9 @@ expr(A) ::= FALSE. { A = new BoolNode(false); }
         // ParseTrace(stdout, "Parser: ");
 
         while ((token = yylex()))
-            Parse(parser, token, yytext);
+        {
+            Parse(parser, token, strdup(yytext));
+        }
 
         Parse(parser, 0, NULL);
 
