@@ -39,6 +39,7 @@
 
 %type program { BlockNode * }
 program ::= statements(B). { rootNode = B; }
+program ::= . // Empty file
 
 %type statements { BlockNode * }
 statements(A) ::= statement(B).            { A = new BlockNode; A->statements.push_back(B); }
