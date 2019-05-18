@@ -1,1 +1,4 @@
-// Comment
+// Module Declaration
+mod testModule inp a, out b;
+    b <- a and true;
+end

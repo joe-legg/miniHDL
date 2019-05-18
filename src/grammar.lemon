@@ -1,0 +1,128 @@
+%include
+{
+    #include <iostream>
+    #include "ast.hpp"
+    #include <string.h>
+
+    extern int yylineno;
+
+    Node *rootNode = new Node;
+    bool parseFail = false;
+}
+
+%syntax_error
+{
+    std::cout << "\033[31mSyntax error on line " << yylineno << " near \""
+            << TOKEN << "\".\033[39;49m\n";
+    parseFail = true;
+}
+
+%parse_accept
+{
+    std::cout << "\033[96mParsing done.\033[39;49m\n";
+}
+
+%parse_failure
+{
+    std::cout << "\033[31mParsing failed.\033[39;49m\n";
+    parseFail = true;
+}
+
+%stack_overflow
+{
+    std::cout << "\033[31mParser stack overflow.\033[39;49m\n";
+}
+
+%token_prefix TOK_
+%token_type   { const char * }
+
+%left AND.
+%left OR.
+%right NOT.
+
+%type program { BlockNode * }
+program ::= statements(B). { rootNode = B; }
+program ::= . // Empty file
+
+%type statements { BlockNode * }
+statements(A) ::= statement(B).            
+{
+    A = new BlockNode;
+    A->statements.push_back(B);
+}
+statements(A) ::= statements(B) statement(C). 
+{
+    B->statements.push_back(C); 
+    A = B;
+}
+
+%type statement { StatementNode * }
+statement(A) ::= expr(B) SEMICOLON. { A = new ExpressionStatementNode(*B); }
+// Connection
+statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON. 
+{
+    A = new ExpressionStatementNode(*(new BinaryOperationNode("con", *B, *D)));
+}
+
+// Module definition
+statement(A) ::= MODULE ident(B) argumentList(C) SEMICOLON statements(D) END.
+{
+    A = new ModuleDefinitionNode(*B, C, *D); 
+}
+statement ::= MODULE ident argumentList SEMICOLON END. // Empty module
+
+// Module arguments
+%type argumentList { std::vector<Argument *> } 
+argumentList(A) ::= argument(B).
+{
+    A = std::vector<Argument *>();
+    A.push_back(B); 
+}
+argumentList(A) ::= argumentList(B) COMMA argument(C).
+{ 
+    B.push_back(C);
+    A = B; 
+}
+
+%type argument { Argument * }
+argument(A) ::= INPUT ident(B).  { A = new Argument(INPUT, B); }
+argument(A) ::= OUTPUT ident(B). { A = new Argument(OUTPUT, B); }
+
+// Expression
+%type expr { ExpressionNode * }
+expr(A) ::= LBRACKET expr(B) RBRACKET. { A = B; }
+expr(A) ::= expr(B) AND expr(D). { A = new BinaryOperationNode("and", *B, *D); }
+expr(A) ::= expr(B) OR expr(D).  { A = new BinaryOperationNode("or", *B, *D); }
+expr(A) ::= NOT expr(C).         { A = new UnaryOperationNode("not", *C); }
+expr(A) ::= TRUE.                { A = new BoolNode(true); }
+expr(A) ::= FALSE.               { A = new BoolNode(false); }
+expr(A) ::= ident(B).            { A = B; }
+
+%type ident { IdentifierNode * }
+ident(A) ::= IDENT(B). { A = new IdentifierNode(B); }
+
+%code
+{
+    extern int yylex();
+    extern char *yytext;
+
+    Node *parse()
+    {
+        void *parser = ParseAlloc(malloc);
+        int token;
+
+        // Uncomment for debugging
+        // ParseTrace(stdout, "Parser: ");
+
+        while ((token = yylex()))
+            Parse(parser, token, strdup(yytext));
+
+        Parse(parser, 0, NULL);
+        ParseFree(parser, free);
+
+        if (parseFail == true)
+            exit(EXIT_FAILURE);
+
+        return rootNode;
+    }
+}
