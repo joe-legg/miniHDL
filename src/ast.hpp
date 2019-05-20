@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#define OUTPUT true
-#define INPUT false
+#define OUTPUT 1
+#define INPUT 0
 
 class Node
 {

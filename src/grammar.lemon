@@ -1,20 +1,29 @@
+%header
+{
+    #include "ast.hpp"
+    Node *parse();
+}
+
 %include
 {
     #include <iostream>
-    #include "ast.hpp"
     #include <string.h>
+    #include "ast.hpp"
+    #include "symbolTable.hpp"
 
     extern int yylineno;
 
     Node *rootNode = new Node;
-    bool parseFail = false;
+    SymbolTable symTable;
+
+    bool error = false;
 }
 
 %syntax_error
 {
     std::cout << "\033[31mSyntax error on line " << yylineno << " near \""
             << TOKEN << "\".\033[39;49m\n";
-    parseFail = true;
+    error = true;
 }
 
 %parse_accept
@@ -25,7 +34,7 @@
 %parse_failure
 {
     std::cout << "\033[31mParsing failed.\033[39;49m\n";
-    parseFail = true;
+    error = true;
 }
 
 %stack_overflow
@@ -85,8 +94,37 @@ argumentList(A) ::= argumentList(B) COMMA argument(C).
 }
 
 %type argument { Argument * }
-argument(A) ::= INPUT ident(B).  { A = new Argument(INPUT, B); }
-argument(A) ::= OUTPUT ident(B). { A = new Argument(OUTPUT, B); }
+argument(A) ::= INPUT ident(B).
+{
+    if (!symTable.isIdentInScope(B->ident)) // If the ident is not in scope
+    {
+        symTable.insertSym(INPUT, B->ident);
+        A = new Argument(INPUT, B);
+    }
+    else
+    {
+        error = true;
+        std::cout << "\033[31mScope error on line " << yylineno << 
+                ": Redefinition of identifier \"" << B->ident <<
+                "\".\033[39;49m\n";
+    }
+
+}
+argument(A) ::= OUTPUT ident(B). 
+{
+    if (!symTable.isIdentInScope(B->ident)) // If the ident is not in scope
+    {
+        symTable.insertSym(OUTPUT, B->ident);
+        A = new Argument(OUTPUT, B);
+    }
+    else
+    {
+        error = true;
+        std::cout << "\033[31mScope error on line " << yylineno << 
+                ": Redefinition of identifier \"" << B->ident << 
+                "\".\033[39;49m\n";
+    }
+}
 
 // Expression
 %type expr { ExpressionNode * }
@@ -120,7 +158,7 @@ ident(A) ::= IDENT(B). { A = new IdentifierNode(B); }
         Parse(parser, 0, NULL);
         ParseFree(parser, free);
 
-        if (parseFail == true)
+        if (error == true)
             exit(EXIT_FAILURE);
 
         return rootNode;

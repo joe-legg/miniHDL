@@ -13,3 +13,6 @@
 #define TOK_TRUE                            13
 #define TOK_FALSE                           14
 #define TOK_IDENT                           15
+
+    #include "ast.hpp"
+    Node *parse();
