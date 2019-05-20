@@ -1,5 +1,4 @@
 #include "symbolTable.hpp"
-#include <iostream>
 
 void SymbolTable::insertSym(int type, std::string ident)
 {

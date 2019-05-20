@@ -9,6 +9,7 @@
     #include <iostream>
     #include <string.h>
     #include "ast.hpp"
+    #include "error.hpp"
     #include "symbolTable.hpp"
 
     extern int yylineno;
@@ -16,14 +17,14 @@
     Node *rootNode = new Node;
     SymbolTable symTable;
 
-    bool error = false;
+    bool compileError = false;
 }
 
 %syntax_error
 {
-    std::cout << "\033[31mSyntax error on line " << yylineno << " near \""
-            << TOKEN << "\".\033[39;49m\n";
-    error = true;
+    error("Syntax compileError on line " + std::to_string(yylineno) + " near \""
+            + TOKEN);
+    compileError = true;
 }
 
 %parse_accept
@@ -33,13 +34,13 @@
 
 %parse_failure
 {
-    std::cout << "\033[31mParsing failed.\033[39;49m\n";
-    error = true;
+    error("Parsing failed.");
+    compileError = true;
 }
 
 %stack_overflow
 {
-    std::cout << "\033[31mParser stack overflow.\033[39;49m\n";
+    error("Parser stack overflow.");
 }
 
 %token_prefix TOK_
@@ -103,10 +104,9 @@ argument(A) ::= INPUT ident(B).
     }
     else
     {
-        error = true;
-        std::cout << "\033[31mScope error on line " << yylineno << 
-                ": Redefinition of identifier \"" << B->ident <<
-                "\".\033[39;49m\n";
+        compileError = true;
+        error("Scope error on line " + std::to_string(yylineno) +
+                ": redefinition of identifier \"" + B->ident + "\".");
     }
 
 }
@@ -119,10 +119,9 @@ argument(A) ::= OUTPUT ident(B).
     }
     else
     {
-        error = true;
-        std::cout << "\033[31mScope error on line " << yylineno << 
-                ": Redefinition of identifier \"" << B->ident << 
-                "\".\033[39;49m\n";
+        compileError = true;
+        error("Scope error on line " + std::to_string(yylineno) +
+                ": redefinition of identifier \"" + B->ident + "\".");
     }
 }
 
@@ -158,7 +157,7 @@ ident(A) ::= IDENT(B). { A = new IdentifierNode(B); }
         Parse(parser, 0, NULL);
         ParseFree(parser, free);
 
-        if (error == true)
+        if (compileError == true)
             exit(EXIT_FAILURE);
 
         return rootNode;
