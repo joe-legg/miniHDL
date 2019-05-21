@@ -51,7 +51,7 @@
 %right NOT.
 
 %type program { BlockNode * }
-program ::= statements(B). { rootNode = B; }
+program ::= enterScope statements(B) exitScope. { rootNode = B; }
 program ::= . // Empty file
 
 // Block of statements
@@ -79,7 +79,17 @@ statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
 // Module definition
 statement(A) ::= MODULE enterScope ident(B) argumentList(C) SEMICOLON statements(D) END exitScope.
 {
-    A = new ModuleDefinitionNode(*B, C, *D);
+    if (!symTable.isIdentInScope(B->ident)) // If the ident is not in scope
+    {
+        symTable.insertSym(MODULE, B->ident);
+        A = new ModuleDefinitionNode(*B, C, *D);
+    }
+    else
+    {
+        compileError = true;
+        error("Scope error on line " + std::to_string(yylineno) +
+                ": redefinition of module \"" + B->ident + "\".");
+    }
 }
 statement ::= MODULE enterScope ident argumentList SEMICOLON END exitScope. // Empty module
 
@@ -99,7 +109,7 @@ argumentList(A) ::= argumentList(B) COMMA argument(C).
 %type argument { Argument * }
 argument(A) ::= INPUT ident(B).
 {
-    if (!symTable.isIdentInScope(B->ident)) // If the ident is not in scope
+    if (!symTable.isIdentInScope(B->ident))
     {
         symTable.insertSym(INPUT, B->ident);
         A = new Argument(INPUT, B);
@@ -114,7 +124,7 @@ argument(A) ::= INPUT ident(B).
 }
 argument(A) ::= OUTPUT ident(B). 
 {
-    if (!symTable.isIdentInScope(B->ident)) // If the ident is not in scope
+    if (!symTable.isIdentInScope(B->ident))
     {
         symTable.insertSym(OUTPUT, B->ident);
         A = new Argument(OUTPUT, B);

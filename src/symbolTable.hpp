@@ -14,7 +14,7 @@ typedef std::tuple<int, std::string> Symbol;
 class SymbolTable
 {
     // Holds a list of the symbols in the current scope
-    std::vector<std::vector<Symbol>> scopes = {std::vector<Symbol>()};
+    std::vector<std::vector<Symbol>> scopes;
 
   public:
     // Symbols
