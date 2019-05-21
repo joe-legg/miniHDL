@@ -22,8 +22,8 @@
 
 %syntax_error
 {
-    error("Syntax compileError on line " + std::to_string(yylineno) + " near \""
-            + TOKEN);
+    error("Syntax error near line " + std::to_string(yylineno) + " near \""
+            + TOKEN + "\".");
     compileError = true;
 }
 
@@ -73,6 +73,21 @@ statement(A) ::= expr(B) SEMICOLON. { A = new ExpressionStatementNode(*B); }
 // Connection
 statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
 {
+    if (symTable.isIdentInScope(B->ident))
+    {
+        if (std::get<0>(symTable.lookupIdent(B->ident)) == INPUT)
+        {
+            compileError = true;
+            error("Connection error near line " + std::to_string(yylineno) +
+                    ": Cannot connect expression to input.");
+        }
+    }
+    else
+    {
+        compileError = true;
+        error("Scope error near line " + std::to_string(yylineno) +
+                ": Identifier, \"" + B->ident + "\", not in scope.");
+    }
     A = new ExpressionStatementNode(*(new BinaryOperationNode("con", *B, *D)));
 }
 
@@ -81,17 +96,18 @@ statement(A) ::= MODULE enterScope ident(B) argumentList(C) SEMICOLON statements
 {
     if (!symTable.isIdentInScope(B->ident)) // If the ident is not in scope
     {
-        symTable.insertSym(MODULE, B->ident);
+       symTable.insertSym(MODULE, B->ident);
         A = new ModuleDefinitionNode(*B, C, *D);
     }
     else
     {
         compileError = true;
-        error("Scope error on line " + std::to_string(yylineno) +
-                ": redefinition of module \"" + B->ident + "\".");
+        error("Scope error near line " + std::to_string(yylineno) +
+                ": Redefinition of module \"" + B->ident + "\".");
     }
 }
-statement ::= MODULE enterScope ident argumentList SEMICOLON END exitScope. // Empty module
+// Empty module
+statement ::= MODULE enterScope ident argumentList SEMICOLON END exitScope.
 
 // Module arguments
 %type argumentList { std::vector<Argument *> }
@@ -117,8 +133,8 @@ argument(A) ::= INPUT ident(B).
     else
     {
         compileError = true;
-        error("Scope error on line " + std::to_string(yylineno) +
-                ": redefinition of identifier \"" + B->ident + "\".");
+        error("Scope error near line " + std::to_string(yylineno) +
+                ": Redefinition of identifier \"" + B->ident + "\".");
     }
 
 }
@@ -132,8 +148,8 @@ argument(A) ::= OUTPUT ident(B).
     else
     {
         compileError = true;
-        error("Scope error on line " + std::to_string(yylineno) +
-                ": redefinition of identifier \"" + B->ident + "\".");
+        error("Scope error near line " + std::to_string(yylineno) +
+                ": Redefinition of identifier \"" + B->ident + "\".");
     }
 }
 
@@ -145,7 +161,16 @@ expr(A) ::= expr(B) OR expr(D).  { A = new BinaryOperationNode("or", *B, *D); }
 expr(A) ::= NOT expr(C).         { A = new UnaryOperationNode("not", *C); }
 expr(A) ::= TRUE.                { A = new BoolNode(true); }
 expr(A) ::= FALSE.               { A = new BoolNode(false); }
-expr(A) ::= ident(B).            { A = B; }
+expr(A) ::= ident(B).            
+{
+    if (!symTable.isIdentInScope(B->ident))
+    {
+        compileError = true;
+        error("Scope error near line " + std::to_string(yylineno) +
+                ": Identifier, \"" + B->ident + "\", not in scope.");
+    }
+    A = B;
+}
 
 %type ident { IdentifierNode * }
 ident(A) ::= IDENT(B). { A = new IdentifierNode(B); }

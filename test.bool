@@ -3,6 +3,6 @@ mod testModule inp a, out b;
     b <- a and true;
 end
 
-mod testModule inp a, out b;
-    a or true;
+mod testModule2 out b;
+    b <- true;
 end
