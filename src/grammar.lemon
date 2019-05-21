@@ -78,8 +78,8 @@ statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
         if (std::get<0>(symTable.lookupIdent(B->ident)) == INPUT)
         {
             compileError = true;
-            error("Connection error near line " + std::to_string(yylineno) +
-                    ": Cannot connect expression to input.");
+            error("Type error near line " + std::to_string(yylineno) +
+                    ": Cannot connect an input to an expression.");
         }
     }
     else
@@ -163,7 +163,16 @@ expr(A) ::= TRUE.                { A = new BoolNode(true); }
 expr(A) ::= FALSE.               { A = new BoolNode(false); }
 expr(A) ::= ident(B).            
 {
-    if (!symTable.isIdentInScope(B->ident))
+    if (symTable.isIdentInScope(B->ident))
+    {
+        if (std::get<0>(symTable.lookupIdent(B->ident)) == OUTPUT)
+        {
+            compileError = true;
+            error("Type error near line " + std::to_string(yylineno) +
+                    ": Cannot use an output as a value.");
+        }
+    }
+    else
     {
         compileError = true;
         error("Scope error near line " + std::to_string(yylineno) +
