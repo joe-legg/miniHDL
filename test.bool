@@ -1,4 +1,8 @@
 // Module Declaration
-mod testModule inp a, inp a, out b;
+mod testModule inp a, out b;
     b <- a and true;
+end
+
+mod testModule2 inp b, inp a, out b;
+    a or true;
 end

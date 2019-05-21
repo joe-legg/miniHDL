@@ -54,44 +54,46 @@
 program ::= statements(B). { rootNode = B; }
 program ::= . // Empty file
 
+// Block of statements
 %type statements { BlockNode * }
-statements(A) ::= statement(B).            
+statements(A) ::= statement(B).
 {
     A = new BlockNode;
     A->statements.push_back(B);
 }
-statements(A) ::= statements(B) statement(C). 
+statements(A) ::= statements(B) statement(C).
 {
-    B->statements.push_back(C); 
+    B->statements.push_back(C);
     A = B;
 }
 
 %type statement { StatementNode * }
+// Expression statement
 statement(A) ::= expr(B) SEMICOLON. { A = new ExpressionStatementNode(*B); }
 // Connection
-statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON. 
+statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
 {
     A = new ExpressionStatementNode(*(new BinaryOperationNode("con", *B, *D)));
 }
 
 // Module definition
-statement(A) ::= MODULE ident(B) argumentList(C) SEMICOLON statements(D) END.
+statement(A) ::= MODULE enterScope ident(B) argumentList(C) SEMICOLON statements(D) END exitScope.
 {
-    A = new ModuleDefinitionNode(*B, C, *D); 
+    A = new ModuleDefinitionNode(*B, C, *D);
 }
-statement ::= MODULE ident argumentList SEMICOLON END. // Empty module
+statement ::= MODULE enterScope ident argumentList SEMICOLON END exitScope. // Empty module
 
 // Module arguments
-%type argumentList { std::vector<Argument *> } 
+%type argumentList { std::vector<Argument *> }
 argumentList(A) ::= argument(B).
 {
     A = std::vector<Argument *>();
-    A.push_back(B); 
+    A.push_back(B);
 }
 argumentList(A) ::= argumentList(B) COMMA argument(C).
-{ 
+{
     B.push_back(C);
-    A = B; 
+    A = B;
 }
 
 %type argument { Argument * }
@@ -137,6 +139,10 @@ expr(A) ::= ident(B).            { A = B; }
 
 %type ident { IdentifierNode * }
 ident(A) ::= IDENT(B). { A = new IdentifierNode(B); }
+
+// Scope rules
+enterScope ::= . { symTable.enterScope(); }
+exitScope ::= .  { symTable.exitScope(); }
 
 %code
 {
