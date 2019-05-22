@@ -66,3 +66,9 @@ std::string ExpressionStatementNode::getString()
 {
     return "Expression: {" + expr.getString() + "}";
 }
+
+std::string ModuleInstanceNode::getString()
+{
+    return "Module Instance: {" + ident.getString() + " Module: \"" +
+            module.ident + "\"}";
+}

@@ -70,6 +70,7 @@ statements(A) ::= statements(B) statement(C).
 %type statement { StatementNode * }
 // Expression statement
 statement(A) ::= expr(B) SEMICOLON. { A = new ExpressionStatementNode(*B); }
+
 // Connection
 statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
 {
@@ -91,8 +92,15 @@ statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
     A = new ExpressionStatementNode(*(new BinaryOperationNode("con", *B, *D)));
 }
 
+// Module instantiation
+statement(A) ::= ident(B) ident(C) SEMICOLON.
+{
+    A = new ModuleInstanceNode(*C, *B);
+}
+
 // Module definition
-statement(A) ::= MODULE enterScope ident(B) argumentList(C) SEMICOLON statements(D) END exitScope.
+statement(A) ::= MODULE enterScope ident(B) argumentList(C) SEMICOLON
+        statements(D) END exitScope.
 {
     if (!symTable.isIdentInScope(B->ident)) // If the ident is not in scope
     {

@@ -107,4 +107,15 @@ class ExpressionStatementNode : public StatementNode
     ExpressionStatementNode(ExpressionNode &expr) : expr(expr) {}
 };
 
+// Module instance
+class ModuleInstanceNode : public StatementNode
+{
+  public:
+    IdentifierNode &ident;
+    IdentifierNode &module;
+    std::string getString();
+    ModuleInstanceNode(IdentifierNode &ident, IdentifierNode &module) : 
+            ident(ident), module(module) {}
+};
+
 #endif
