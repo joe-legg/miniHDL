@@ -76,11 +76,13 @@ statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
 {
     if (symTable.isIdentInScope(B->ident))
     {
-        if (std::get<0>(symTable.lookupIdent(B->ident)) == INPUT)
+        Symbol ident = symTable.lookupIdent(B->ident);
+        if (std::get<0>(ident) != OUTPUT)
         {
             compileError = true;
             error("Type error near line " + std::to_string(yylineno) +
-                    ": Cannot connect an input to an expression.");
+                    ": Identifier, \"" + B->ident +
+                    "\", must be an output.");
         }
     }
     else
@@ -95,7 +97,7 @@ statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
 // Module instantiation
 statement(A) ::= ident(B) ident(C) COLON argList(D) SEMICOLON.
 {
-    // If the instance ident is allready in scope
+    // If the instance ident is already in scope
     if (symTable.isIdentInScope(C->ident))
     {
         compileError = true;
@@ -129,8 +131,8 @@ statement(A) ::= ident(B) ident(C) COLON argList(D) SEMICOLON.
             error("Scope error near line " + std::to_string(yylineno) +
                     ": Module, \"" + B->ident + "\", not in scope.");
         }
+        symTable.insertSym(MODULE_INST, C->ident);
     }
-    symTable.insertSym(MODULE_INST, C->ident);
     A = new ModuleInstanceNode(*C, *B, D);
 }
 
