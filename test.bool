@@ -2,6 +2,8 @@ mod testModule inp a, out b;
     b <- a and true;
 end
 
-testModule test:
-    m, // inp a <- m
-    c; // c <- out b
+mod anotherModule inp m, out c;
+    testModule test:
+        m, // inp a <- m
+        c; // c <- out b
+end

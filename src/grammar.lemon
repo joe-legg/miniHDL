@@ -168,7 +168,6 @@ statement(A) ::= MODULE enterScope ident(B) parameterList(C) SEMICOLON
     if (!symTable.isIdentInScope(B->ident)) // If the ident is not in scope
     {
         symTable.insertSym(MODULE, B->ident, C.size());
-        A = new ModuleDefinitionNode(*B, C, *D);
     }
     else
     {
@@ -176,6 +175,7 @@ statement(A) ::= MODULE enterScope ident(B) parameterList(C) SEMICOLON
         error("Scope error near line " + std::to_string(yylineno) +
                 ": Redefinition of module \"" + B->ident + "\".");
     }
+    A = new ModuleDefinitionNode(*B, C, *D);
 }
 // Empty module
 statement ::= MODULE enterScope ident parameterList SEMICOLON END exitScope.
@@ -188,6 +188,7 @@ statement ::= MODULE enterScope ident parameterList SEMICOLON END exitScope.
 
 // Module parameters
 %type parameterList { std::vector<Parameter *> }
+parameterList(A) ::= . { A = std::vector<Parameter *>(); }
 parameterList(A) ::= parameter(B).
 {
     A = std::vector<Parameter *>();
