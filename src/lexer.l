@@ -24,6 +24,7 @@ end   return TOK_END;
 "(" return TOK_LBRACKET;
 ")" return TOK_RBRACKET;
 ";" return TOK_SEMICOLON;
+":" return TOK_COLON;
 "," return TOK_COMMA;
 
 [_a-zA-Z][_a-zA-Z0-9]* return TOK_IDENT;
@@ -32,6 +33,6 @@ end   return TOK_END;
 " " {}
 \n {}
 \t {}
-. {}
+. return 999999;
 
 %%

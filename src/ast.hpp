@@ -77,12 +77,12 @@ class BlockNode : public StatementNode
     std::string getString();
 };
 
-class Argument
+class Parameter
 {
   public:
     bool type;
     IdentifierNode *ident;
-    Argument(bool type, IdentifierNode *ident): type(type), ident(ident) {}
+    Parameter(bool type, IdentifierNode *ident): type(type), ident(ident) {}
 };
 
 // Module definition
@@ -90,12 +90,12 @@ class ModuleDefinitionNode : public StatementNode
 {
   public:
     IdentifierNode &ident;
-    std::vector<Argument *> arguments;
+    std::vector<Parameter *> parameters;
     BlockNode &block;
     std::string getString();
     ModuleDefinitionNode(IdentifierNode &ident,
-            std::vector<Argument *> arguments, BlockNode &block) : ident(ident),
-            arguments(arguments), block(block) {}
+            std::vector<Parameter *> parameters, BlockNode &block) : ident(ident),
+            parameters(parameters), block(block) {}
 };
 
 // Expression statement
@@ -113,9 +113,11 @@ class ModuleInstanceNode : public StatementNode
   public:
     IdentifierNode &ident;
     IdentifierNode &module;
+    std::vector<IdentifierNode *> arguments;
     std::string getString();
-    ModuleInstanceNode(IdentifierNode &ident, IdentifierNode &module) : 
-            ident(ident), module(module) {}
+    ModuleInstanceNode(IdentifierNode &ident, IdentifierNode &module,
+            std::vector<IdentifierNode *> arguments) : ident(ident),
+            module(module), arguments(arguments) {}
 };
 
 #endif

@@ -22,7 +22,7 @@
 
 %syntax_error
 {
-    error("Syntax error near line " + std::to_string(yylineno) + " near \""
+    error("Syntax error on line " + std::to_string(yylineno) + " near \""
             + TOKEN + "\".");
     compileError = true;
 }
@@ -93,18 +93,79 @@ statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
 }
 
 // Module instantiation
-statement(A) ::= ident(B) ident(C) SEMICOLON.
+statement(A) ::= ident(B) ident(C) COLON argList(D) SEMICOLON.
 {
-    A = new ModuleInstanceNode(*C, *B);
+    // If the instance ident is allready in scope
+    if (symTable.isIdentInScope(C->ident))
+    {
+        compileError = true;
+        error("Scope error near line " + std::to_string(yylineno) +
+                ": Redefinition of identifier \"" + C->ident + "\".");
+    }
+    else
+    {
+        if (symTable.isIdentInScope(B->ident)) // If the module ident is in scope
+        {
+            Symbol module = symTable.lookupIdent(B->ident);
+            // If the module ident is not a module
+            if (std::get<0>(module) != MODULE)
+            {
+                compileError = true;
+                error("Type error near line " + std::to_string(yylineno) +
+                        ": Identifier, \"" + B->ident + "\", is not a module.");
+            }
+            else if (D.size() != std::get<2>(module))
+            {
+                compileError = true;
+                error("Module instantiation error near line " +
+                        std::to_string(yylineno) +
+                        ": Too many or not enough arguments.");
+            }
+
+        }
+        else
+        {
+            compileError = true;
+            error("Scope error near line " + std::to_string(yylineno) +
+                    ": Module, \"" + B->ident + "\", not in scope.");
+        }
+    }
+    symTable.insertSym(MODULE_INST, C->ident);
+    A = new ModuleInstanceNode(*C, *B, D);
+}
+
+// Argument list for module instances
+%type argList { std::vector<IdentifierNode *> }
+argList(A) ::= ident(B).
+{
+    if (!symTable.isIdentInScope(B->ident))
+    {
+        compileError = true;
+        error("Scope error near line " + std::to_string(yylineno) +
+                ": Identifier, \"" + B->ident + "\", not in scope.");
+    }
+    A = std::vector<IdentifierNode *>();
+    A.push_back(B);
+}
+argList(A) ::= argList(B) COMMA ident(C).
+{
+    if (!symTable.isIdentInScope(C->ident))
+    {
+        compileError = true;
+        error("Scope error near line " + std::to_string(yylineno) +
+                ": Identifier, \"" + C->ident + "\", not in scope.");
+    }
+    B.push_back(C);
+    A = B;
 }
 
 // Module definition
-statement(A) ::= MODULE enterScope ident(B) argumentList(C) SEMICOLON
+statement(A) ::= MODULE enterScope ident(B) parameterList(C) SEMICOLON
         statements(D) END exitScope.
 {
     if (!symTable.isIdentInScope(B->ident)) // If the ident is not in scope
     {
-       symTable.insertSym(MODULE, B->ident);
+        symTable.insertSym(MODULE, B->ident, C.size());
         A = new ModuleDefinitionNode(*B, C, *D);
     }
     else
@@ -115,28 +176,34 @@ statement(A) ::= MODULE enterScope ident(B) argumentList(C) SEMICOLON
     }
 }
 // Empty module
-statement ::= MODULE enterScope ident argumentList SEMICOLON END exitScope.
-
-// Module arguments
-%type argumentList { std::vector<Argument *> }
-argumentList(A) ::= argument(B).
+statement ::= MODULE enterScope ident parameterList SEMICOLON END exitScope.
 {
-    A = std::vector<Argument *>();
+    compileError = true;
+    error("Error near line " + std::to_string(yylineno) +
+            ": Cannot define empty modules.");
+}
+
+
+// Module parameters
+%type parameterList { std::vector<Parameter *> }
+parameterList(A) ::= parameter(B).
+{
+    A = std::vector<Parameter *>();
     A.push_back(B);
 }
-argumentList(A) ::= argumentList(B) COMMA argument(C).
+parameterList(A) ::= parameterList(B) COMMA parameter(C).
 {
     B.push_back(C);
     A = B;
 }
 
-%type argument { Argument * }
-argument(A) ::= INPUT ident(B).
+%type parameter { Parameter * }
+parameter(A) ::= INPUT ident(B).
 {
     if (!symTable.isIdentInScope(B->ident))
     {
         symTable.insertSym(INPUT, B->ident);
-        A = new Argument(INPUT, B);
+        A = new Parameter(INPUT, B);
     }
     else
     {
@@ -146,12 +213,12 @@ argument(A) ::= INPUT ident(B).
     }
 
 }
-argument(A) ::= OUTPUT ident(B). 
+parameter(A) ::= OUTPUT ident(B). 
 {
     if (!symTable.isIdentInScope(B->ident))
     {
         symTable.insertSym(OUTPUT, B->ident);
-        A = new Argument(OUTPUT, B);
+        A = new Parameter(OUTPUT, B);
     }
     else
     {

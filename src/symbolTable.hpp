@@ -8,8 +8,10 @@
 #define INPUT 0
 #define OUTPUT 1
 #define MODULE 2
+#define MODULE_INST 3
 
-typedef std::tuple<int, std::string> Symbol;
+typedef std::tuple<int /* Type */, std::string /* Symbol */,
+        int /* extra data */> Symbol;
 
 class SymbolTable
 {
@@ -18,7 +20,7 @@ class SymbolTable
 
   public:
     // Symbols
-    void insertSym(int type, std::string ident);
+    void insertSym(int type, std::string ident, int extraData = 0);
     Symbol lookupIdent(std::string ident);
     bool isIdentInScope(std::string ident);
 

@@ -52,13 +52,13 @@ std::string BlockNode::getString()
 
 std::string ModuleDefinitionNode::getString()
 {
-    std::string argStr = ", Arguments: {";
-    for (long unsigned int i = 0; i < arguments.size(); i++)
-        argStr += std::string("Argument: {Type: ") + 
-                (arguments[i]->type ? "Output, " : "Input, ") +
-                arguments[i]->ident->getString() + "}, ";
-    argStr += "}, ";
-    return "Module Definition: {" + ident.getString() + argStr +
+    std::string paramStr = ", Parameters: {";
+    for (long unsigned int i = 0; i < parameters.size(); i++)
+        paramStr += std::string("Parameter: {Type: ") + 
+                (parameters[i]->type ? "Output, " : "Input, ") +
+                parameters[i]->ident->getString() + "}, ";
+    paramStr += "}, ";
+    return "Module Definition: {" + ident.getString() + paramStr +
             block.getString() + "}";
 }
 
@@ -69,6 +69,10 @@ std::string ExpressionStatementNode::getString()
 
 std::string ModuleInstanceNode::getString()
 {
-    return "Module Instance: {" + ident.getString() + " Module: \"" +
-            module.ident + "\"}";
+    std::string argStr = "Arguments: {";
+    for (int i = 0; i < arguments.size(); i++)
+        argStr += arguments[i]->getString() + ", ";
+    argStr += "}";
+    return "Module Instance: {" + ident.getString() + ", Module: \"" +
+            module.ident + "\", " + argStr + "}";
 }

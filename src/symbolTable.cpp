@@ -1,8 +1,9 @@
 #include "symbolTable.hpp"
 
-void SymbolTable::insertSym(int type, std::string ident)
+void SymbolTable::insertSym(int type, std::string ident, int extraData)
 {
-    scopes[scopes.size() - 1].push_back(std::make_tuple(type, ident));
+    scopes[scopes.size() - 1].push_back(std::make_tuple(type, ident,
+            extraData));
 }
 
 Symbol SymbolTable::lookupIdent(std::string ident)
@@ -11,7 +12,7 @@ Symbol SymbolTable::lookupIdent(std::string ident)
         for (int k = 0; k < scopes[i].size(); k++)
             if (std::get<1>(scopes[i][k]) == ident)
                 return scopes[i][k];
-    return std::make_tuple(-1, ""); // If symbol is not in scope
+    return std::make_tuple(-1, "", -1); // If symbol is not in scope
 }
 
 bool SymbolTable::isIdentInScope(std::string ident)
