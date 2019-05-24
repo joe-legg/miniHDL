@@ -10,7 +10,7 @@
 class Node
 {
   public:
-    virtual void codeGen();
+    virtual std::string codeGen();
     virtual std::string getString();
 };
 
@@ -18,6 +18,7 @@ class Node
 class ExpressionNode : public Node
 {
   public:
+    std::string codeGen();
     std::string getString();
 };
 
@@ -26,17 +27,19 @@ class BoolNode : public ExpressionNode
 {
   public:
     bool value;
-    BoolNode (bool val) : value(val) {}
+    std::string codeGen();
     std::string getString();
+    BoolNode (bool val) : value(val) {}
 };
 
 // Binary operation
 class BinaryOperationNode : public ExpressionNode
 {
   public:
-    const char *operation;
+    std::string operation;
     ExpressionNode &left;
     ExpressionNode &right;
+    std::string codeGen();
     std::string getString();
     BinaryOperationNode(const char *op, ExpressionNode &left,
              ExpressionNode &right) : operation(op), left(left), right(right) {}
@@ -46,8 +49,9 @@ class BinaryOperationNode : public ExpressionNode
 class UnaryOperationNode : public ExpressionNode
 {
   public:
-    const char *operation;
+    std::string operation;
     ExpressionNode &expr;
+    std::string codeGen();
     std::string getString();
     UnaryOperationNode(const char *operation,
             ExpressionNode &expr) : operation(operation), expr(expr) {}
@@ -58,6 +62,7 @@ class IdentifierNode : public ExpressionNode
 {
   public:
     std::string ident;
+    std::string codeGen();
     std::string getString();
     IdentifierNode(std::string ident) : ident(ident) {}
 };
@@ -66,6 +71,7 @@ class IdentifierNode : public ExpressionNode
 class StatementNode : public Node
 {
   public:
+    std::string codeGen();
     std::string getString();
 };
 
@@ -74,6 +80,7 @@ class BlockNode : public StatementNode
 {
   public:
     std::vector<StatementNode *> statements;
+    std::string codeGen();
     std::string getString();
 };
 
@@ -92,6 +99,7 @@ class ModuleDefinitionNode : public StatementNode
     IdentifierNode &ident;
     std::vector<Parameter *> parameters;
     BlockNode &block;
+    std::string codeGen();
     std::string getString();
     ModuleDefinitionNode(IdentifierNode &ident,
             std::vector<Parameter *> parameters, BlockNode &block) : ident(ident),
@@ -103,6 +111,7 @@ class ExpressionStatementNode : public StatementNode
 {
   public:
     ExpressionNode &expr;
+    std::string codeGen();
     std::string getString();
     ExpressionStatementNode(ExpressionNode &expr) : expr(expr) {}
 };
@@ -114,6 +123,7 @@ class ModuleInstanceNode : public StatementNode
     IdentifierNode &ident;
     IdentifierNode &module;
     std::vector<IdentifierNode *> arguments;
+    std::string codeGen();
     std::string getString();
     ModuleInstanceNode(IdentifierNode &ident, IdentifierNode &module,
             std::vector<IdentifierNode *> arguments) : ident(ident),
