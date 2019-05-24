@@ -16,4 +16,4 @@
 #define TOK_IDENT                           16
 
     #include "ast.hpp"
-    Node *parse();
+    Node *parse(const char *filename);

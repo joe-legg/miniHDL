@@ -1,7 +1,7 @@
 %header
 {
     #include "ast.hpp"
-    Node *parse();
+    Node *parse(const char *filename);
 }
 
 %include
@@ -270,9 +270,11 @@ exitScope ::= .  { symTable.exitScope(); }
 {
     extern int yylex();
     extern char *yytext;
+    extern FILE *yyin;
 
-    Node *parse()
+    Node *parse(const char *filename)
     {
+        yyin = fopen(filename, "r"); // Open file
         void *parser = ParseAlloc(malloc);
         int token;
 
@@ -287,7 +289,8 @@ exitScope ::= .  { symTable.exitScope(); }
 
         if (compileError == true)
             exit(EXIT_FAILURE);
-
+        
+        fclose(yyin); // Close file
         return rootNode;
     }
 }
