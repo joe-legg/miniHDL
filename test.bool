@@ -7,3 +7,5 @@ mod anotherModule inp m, out c;
         m, // inp a <- m
         c; // c <- out b
 end
+
+end

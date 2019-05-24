@@ -16,13 +16,14 @@
 
     Node *rootNode = new Node;
     SymbolTable symTable;
-
+    
+    std::string curFile;
     bool compileError = false;
 }
 
 %syntax_error
 {
-    error("Syntax error on line " + std::to_string(yylineno) + " near \""
+    error(curFile + ": Syntax error on line " + std::to_string(yylineno) + " near \""
             + TOKEN + "\".");
     compileError = true;
 }
@@ -34,13 +35,13 @@
 
 %parse_failure
 {
-    error("Parsing failed.");
+    error(curFile + ": Parsing failed.");
     compileError = true;
 }
 
 %stack_overflow
 {
-    error("Parser stack overflow.");
+    error(curFile + ": Parser stack overflow.");
 }
 
 %token_prefix TOK_
@@ -80,7 +81,7 @@ statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
         if (std::get<0>(ident) != OUTPUT)
         {
             compileError = true;
-            error("Type error near line " + std::to_string(yylineno) +
+            error(curFile + ": Type error near line " + std::to_string(yylineno) +
                     ": Identifier, \"" + B->ident +
                     "\", must be an output.");
         }
@@ -88,7 +89,7 @@ statement(A) ::= ident(B) CONNECTION expr(D) SEMICOLON.
     else
     {
         compileError = true;
-        error("Scope error near line " + std::to_string(yylineno) +
+        error(curFile + ":  Scope error near line " + std::to_string(yylineno) +
                 ": Identifier, \"" + B->ident + "\", not in scope.");
     }
     A = new ExpressionStatementNode(*(new BinaryOperationNode("con", *B, *D)));
@@ -101,7 +102,7 @@ statement(A) ::= ident(B) ident(C) COLON argList(D) SEMICOLON.
     if (symTable.isIdentInScope(C->ident))
     {
         compileError = true;
-        error("Scope error near line " + std::to_string(yylineno) +
+        error(curFile + ": Scope error near line " + std::to_string(yylineno) +
                 ": Redefinition of identifier \"" + C->ident + "\".");
     }
     else
@@ -113,13 +114,13 @@ statement(A) ::= ident(B) ident(C) COLON argList(D) SEMICOLON.
             if (std::get<0>(module) != MODULE)
             {
                 compileError = true;
-                error("Type error near line " + std::to_string(yylineno) +
+                error(curFile + ": Type error near line " + std::to_string(yylineno) +
                         ": Identifier, \"" + B->ident + "\", is not a module.");
             }
             else if (D.size() != std::get<2>(module))
             {
                 compileError = true;
-                error("Module instantiation error near line " +
+                error(curFile + ": Module instantiation error near line " +
                         std::to_string(yylineno) +
                         ": Too many or not enough arguments.");
             }
@@ -128,7 +129,7 @@ statement(A) ::= ident(B) ident(C) COLON argList(D) SEMICOLON.
         else
         {
             compileError = true;
-            error("Scope error near line " + std::to_string(yylineno) +
+            error(curFile + ": Scope error near line " + std::to_string(yylineno) +
                     ": Module, \"" + B->ident + "\", not in scope.");
         }
         symTable.insertSym(MODULE_INST, C->ident);
@@ -143,7 +144,7 @@ argList(A) ::= ident(B).
     if (!symTable.isIdentInScope(B->ident))
     {
         compileError = true;
-        error("Scope error near line " + std::to_string(yylineno) +
+        error(curFile + ": Scope error near line " + std::to_string(yylineno) +
                 ": Identifier, \"" + B->ident + "\", not in scope.");
     }
     A = std::vector<IdentifierNode *>();
@@ -154,7 +155,7 @@ argList(A) ::= argList(B) COMMA ident(C).
     if (!symTable.isIdentInScope(C->ident))
     {
         compileError = true;
-        error("Scope error near line " + std::to_string(yylineno) +
+        error(curFile + ": Scope error near line " + std::to_string(yylineno) +
                 ": Identifier, \"" + C->ident + "\", not in scope.");
     }
     B.push_back(C);
@@ -172,7 +173,7 @@ statement(A) ::= MODULE enterScope ident(B) parameterList(C) SEMICOLON
     else
     {
         compileError = true;
-        error("Scope error near line " + std::to_string(yylineno) +
+        error(curFile + ": Scope error near line " + std::to_string(yylineno) +
                 ": Redefinition of module \"" + B->ident + "\".");
     }
     A = new ModuleDefinitionNode(*B, C, *D);
@@ -181,7 +182,7 @@ statement(A) ::= MODULE enterScope ident(B) parameterList(C) SEMICOLON
 statement ::= MODULE enterScope ident parameterList SEMICOLON END exitScope.
 {
     compileError = true;
-    error("Error near line " + std::to_string(yylineno) +
+    error(curFile + ": Error near line " + std::to_string(yylineno) +
             ": Cannot define empty modules.");
 }
 
@@ -211,7 +212,7 @@ parameter(A) ::= INPUT ident(B).
     else
     {
         compileError = true;
-        error("Scope error near line " + std::to_string(yylineno) +
+        error(curFile + ": Scope error near line " + std::to_string(yylineno) +
                 ": Redefinition of identifier \"" + B->ident + "\".");
     }
 
@@ -226,7 +227,7 @@ parameter(A) ::= OUTPUT ident(B).
     else
     {
         compileError = true;
-        error("Scope error near line " + std::to_string(yylineno) +
+        error(curFile + ": Scope error near line " + std::to_string(yylineno) +
                 ": Redefinition of identifier \"" + B->ident + "\".");
     }
 }
@@ -246,14 +247,14 @@ expr(A) ::= ident(B).
         if (std::get<0>(symTable.lookupIdent(B->ident)) == OUTPUT)
         {
             compileError = true;
-            error("Type error near line " + std::to_string(yylineno) +
+            error(curFile + ": Type error near line " + std::to_string(yylineno) +
                     ": Cannot use an output as a value.");
         }
     }
     else
     {
         compileError = true;
-        error("Scope error near line " + std::to_string(yylineno) +
+        error(curFile + ": Scope error near line " + std::to_string(yylineno) +
                 ": Identifier, \"" + B->ident + "\", not in scope.");
     }
     A = B;
@@ -277,6 +278,8 @@ exitScope ::= .  { symTable.exitScope(); }
         yyin = fopen(filename, "r"); // Open file
         void *parser = ParseAlloc(malloc);
         int token;
+
+        curFile = filename;
 
         // Uncomment for debugging
         // ParseTrace(stdout, "Parser: ");
