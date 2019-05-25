@@ -67,8 +67,9 @@ program ::= compoundStmt.
 compoundStmt ::= statement.
 compoundStmt ::= compoundStmt statement.
 
-statement ::= expr SEMICOLON.
 statement ::= ident CONNECTION expr SEMICOLON. // Connection
+statement ::= WIRE ident SEMICOLON.
+statement ::= WIRE ident CONNECTION expr SEMICOLON.
 
 // Module definition
 statement ::= MODULE ident portList SEMICOLON compoundStmt END.

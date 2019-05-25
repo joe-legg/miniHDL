@@ -18,6 +18,7 @@ true  return TOK_TRUE;
 false return TOK_FALSE;
 inp   return TOK_INPUT;
 out   return TOK_OUTPUT;
+wire  return TOK_WIRE;
 mod   return TOK_MODULE;
 end   return TOK_END;
 "<-"  return TOK_CONNECTION;
