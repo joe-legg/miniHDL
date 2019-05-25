@@ -19,6 +19,8 @@ false return TOK_FALSE;
 inp   return TOK_INPUT;
 out   return TOK_OUTPUT;
 wire  return TOK_WIRE;
+when  return TOK_WHEN;
+else  return TOK_ELSE;
 mod   return TOK_MODULE;
 end   return TOK_END;
 "<-"  return TOK_CONNECTION;

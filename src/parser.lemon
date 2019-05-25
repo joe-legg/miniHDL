@@ -74,6 +74,10 @@ statement ::= ident CONNECTION expr SEMICOLON. // Connection
 statement ::= WIRE ident SEMICOLON.
 statement ::= WIRE ident CONNECTION expr SEMICOLON.
 
+// When statement
+statement ::= WHEN expr SEMICOLON compoundStmt END.
+statement ::= WHEN expr SEMICOLON compoundStmt ELSE compoundStmt END.
+
 // Module definition
 statement ::= MODULE ident portList SEMICOLON compoundStmt END.
 
