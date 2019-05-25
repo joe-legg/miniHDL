@@ -3,7 +3,7 @@ The compiler for a mini hardware description language that compiles to Verilog.
 
 ### ! WARNING !
 This is my first compiler so expect to find lots of bugs and badly written code.
-Also, it is incomplete. I am currently working on a rewrite.
+Also, it is incomplete. I am currently working on a rewrite with more features.
 
 ## Compiling
 To compile miniHDL from source you will need the following programs.
