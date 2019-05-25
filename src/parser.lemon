@@ -7,13 +7,15 @@
 {
     #include <iostream>
     #include <string>
+    #include "error.hpp"
 
     extern int yylineno;
+    std::string curTok; // Holds the current token
 }
 
 %syntax_error
 {
-    std::cout << yylineno << ": Syntax error near \"" << TOKEN << "\"\n";
+    error(std::to_string(yylineno) + ": Syntax error near \"" + curTok + "\".");
 }
 
 %parse_accept
@@ -23,10 +25,12 @@
 
 %parse_failure
 {
+    error("Parse failure.");
 }
 
 %stack_overflow
 {
+    error("Stack overflow.");
 }
 
 // Main parse function
@@ -44,7 +48,10 @@
         // ParseTrace(stdout, "Parser: ");
 
         while ((token = yylex()))
-            Parse(parser, token, strdup(yytext));
+        {
+            curTok = yytext;
+            Parse(parser, token, curTok.c_str());
+        }
 
         Parse(parser, 0, NULL);
         ParseFree(parser, free);
@@ -67,8 +74,8 @@ program ::= compoundStmt.
 compoundStmt ::= statement.
 compoundStmt ::= compoundStmt statement.
 
-statement ::= ident CONNECTION expr SEMICOLON. // Connection
-
+// Connection
+statement ::= ident CONNECTION expr SEMICOLON.
 
 // Wire definition
 statement ::= WIRE ident SEMICOLON.
@@ -104,4 +111,4 @@ expr ::= FALSE.
 expr ::= ident.
 
 // Identifier
-ident ::= IDENT. // TODO
+ident ::= IDENT.
