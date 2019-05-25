@@ -1,0 +1,92 @@
+%header
+{
+    void parse(const char *filename);
+}
+
+%include
+{
+    #include <iostream>
+    #include <string>
+
+    extern int yylineno;
+}
+
+%syntax_error
+{
+    std::cout << yylineno << ": Syntax error near \"" << TOKEN << "\"\n";
+}
+
+%parse_accept
+{
+    std::cout << "\033[96mParsing done.\033[39;49m\n";
+}
+
+%parse_failure
+{
+}
+
+%stack_overflow
+{
+}
+
+// Main parse function
+%code
+{
+    extern int yylex();
+    extern char *yytext;
+    
+    void parse(const char *filename)
+    {
+        void *parser = ParseAlloc(malloc);
+        int token;
+
+        // Uncomment for debugging
+        // ParseTrace(stdout, "Parser: ");
+
+        while ((token = yylex()))
+            Parse(parser, token, strdup(yytext));
+
+        Parse(parser, 0, NULL);
+        ParseFree(parser, free);
+    }
+}
+
+%token_prefix TOK_
+%token_type   { const char * }
+
+// Operator precedence
+%left AND.
+%left XOR.
+%left OR.
+%right NOT.
+
+// Main program
+program ::= compoundStmt.
+
+// Compound statement
+compoundStmt ::= statement.
+compoundStmt ::= compoundStmt statement.
+
+statement ::= expr SEMICOLON.
+statement ::= ident CONNECTION expr SEMICOLON. // Connection
+
+// Module definition
+statement ::= MODULE ident portList SEMICOLON compoundStmt END.
+
+// Port list
+portList ::= portDef.
+portList ::= portList COMMA portDef.
+portDef ::= INPUT ident.
+portDef ::= OUTPUT ident.
+
+expr ::= LBRACKET expr RBRACKET.
+expr ::= expr AND expr.
+expr ::= expr OR expr.
+expr ::= expr XOR expr.
+expr ::= NOT expr.
+expr ::= TRUE.
+expr ::= FALSE.
+expr ::= ident.
+
+// Identifier
+ident ::= IDENT. // TODO
