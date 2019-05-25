@@ -13,6 +13,7 @@
 and   return TOK_AND;
 or    return TOK_OR;
 not|! return TOK_NOT;
+xor   return TOK_XOR;
 true  return TOK_TRUE;
 false return TOK_FALSE;
 inp   return TOK_INPUT;

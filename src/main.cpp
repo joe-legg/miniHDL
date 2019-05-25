@@ -23,6 +23,9 @@ int main(int argc, char *argv[])
     for (int i = 1; i < argc; i++)
         if (argv[i][0] != '-' && argv[i - 1][0] != '-')
             sourceFiles.push_back(argv[i]);
+    
+    if (cmdOptionExists(argv, argv + argc, "-h")) // Display help
+        std::cout << help;
 
     if (sourceFiles.size() < 1)
     {
@@ -33,8 +36,6 @@ int main(int argc, char *argv[])
     {
         const char *outFilename = "out.v";
         const char *dumpAstFile = "";
-        if (cmdOptionExists(argv, argv + argc, "-h")) // Display help
-            std::cout << help;
 
         if (cmdOptionExists(argv, argv + argc, "-o")) // Output file
             outFilename = getCmdOption(argv, argv + argc, "-o");

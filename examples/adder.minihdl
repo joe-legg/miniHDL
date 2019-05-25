@@ -1,0 +1,31 @@
+// Full adder
+mod halfAdder inp a, 
+              inp b, 
+              out sum,
+              out carry;
+    sum <- a xor b;
+    carry <- a and b;
+end
+
+mod fullAdder inp a,
+              inp b,
+              inp cin,
+              out sum,
+              out cout;
+    wire sum1;
+    wire co1;
+    wire co2;
+
+    cout <- co1 or co2;
+
+    halfAdder hAdd1:
+        a,
+        b,
+        sum1,
+        co1;
+    halfAdder hAdd2:
+        sum1,
+        cin,
+        sum,
+        co2;
+end

@@ -1,0 +1,7 @@
+mod fullAdder inp a,
+              inp b,
+              inp cin,
+              out sum,
+              out cout;
+    sum <- a xor b;
+end

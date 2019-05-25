@@ -48,6 +48,7 @@
 %token_type   { const char * }
 
 %left AND.
+%left XOR.
 %left OR.
 %right NOT.
 
@@ -236,6 +237,7 @@ parameter(A) ::= OUTPUT ident(B).
 %type expr { ExpressionNode * }
 expr(A) ::= LBRACKET expr(B) RBRACKET. { A = B; }
 expr(A) ::= expr(B) AND expr(D). { A = new BinaryOperationNode("and", *B, *D); }
+expr(A) ::= expr(B) XOR expr(D). { A = new BinaryOperationNode("xor", *B, *D); }
 expr(A) ::= expr(B) OR expr(D).  { A = new BinaryOperationNode("or", *B, *D); }
 expr(A) ::= NOT expr(C).         { A = new UnaryOperationNode("not", *C); }
 expr(A) ::= TRUE.                { A = new BoolNode(true); }

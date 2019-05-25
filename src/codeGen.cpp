@@ -10,6 +10,8 @@ std::string BinaryOperationNode::codeGen()
 {
     if (operation == "and") // And gate
         return left.codeGen() + "&" + right.codeGen();
+    else if (operation == "xor")
+        return left.codeGen() + "^" +right.codeGen();
     else if (operation == "or") // Or gate
         return left.codeGen() + "|" + right.codeGen();
     else if (operation == "con") // Connection
