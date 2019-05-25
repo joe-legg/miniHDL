@@ -68,6 +68,9 @@ compoundStmt ::= statement.
 compoundStmt ::= compoundStmt statement.
 
 statement ::= ident CONNECTION expr SEMICOLON. // Connection
+
+
+// Wire definition
 statement ::= WIRE ident SEMICOLON.
 statement ::= WIRE ident CONNECTION expr SEMICOLON.
 
@@ -79,6 +82,13 @@ portList ::= portDef.
 portList ::= portList COMMA portDef.
 portDef ::= INPUT ident.
 portDef ::= OUTPUT ident.
+
+// Module intatiation
+statement ::= ident ident argumentList SEMICOLON.
+
+// Argument list
+argumentList ::= expr.
+argumentList ::= argumentList COMMA expr.
 
 expr ::= LBRACKET expr RBRACKET.
 expr ::= expr AND expr.
