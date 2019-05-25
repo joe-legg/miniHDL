@@ -1,4 +1,4 @@
-src/grammar.cpp
-src/grammar.out
-src/lex.yy.cpp
+src/parser.cpp
+src/parser.out
+src/lex.yy.c
 bin/
