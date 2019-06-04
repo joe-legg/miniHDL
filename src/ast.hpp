@@ -4,8 +4,8 @@
 #include <vector>
 #include <string>
 
-enum Operation { And, Or, Xor, Not, Connection };
-enum Type { Input, Output };
+enum class Operation { And, Or, Xor, Not, Connection };
+enum class Type { Input, Output };
 
 class ASTNode
 {

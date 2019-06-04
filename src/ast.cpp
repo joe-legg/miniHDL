@@ -46,12 +46,12 @@ std::string BoolNode::getString()
 std::string BinaryOpNode::getString()
 {
     return "Binary Operation: {" + left->getString() + ", Operation: " + 
-            std::to_string(op) + ", " + right->getString() + "}";
+            std::to_string((int)op) + ", " + right->getString() + "}";
 }
 
 std::string UnaryOpNode::getString()
 {
-    return "Unary Operation: {Operation: " + std::to_string(op) +
+    return "Unary Operation: {Operation: " + std::to_string((int)op) +
             ", " + expr->getString() + "}";
 }
 
@@ -102,7 +102,7 @@ std::string ModuleDef::getString()
 {
     std::string portListStr = "Port List: {";
     for (int i = 0; i < portList.size(); i++)
-        portListStr += "Port: {Type: " + std::to_string(portList[i].type) +
+        portListStr += "Port: {Type: " + std::to_string((int)portList[i].type) +
                 ", " + portList[i].ident->getString() + "}, ";
     portListStr.pop_back();
     portListStr.pop_back();

@@ -10,16 +10,21 @@
     #include <string>
     #include "error.hpp"
     #include "ast.hpp"
+    #include "symbolTable.hpp"
 
     extern int yylineno;
 
     std::string curTok; // Holds the current token for syntax errors
+    std::string curFileName; // Holds the name of the current file being compiled
+    SymbolTable symTable;
+    bool compileError = false;
     ASTNode *rootNode;
 }
 
 %syntax_error
 {
-    error(std::to_string(yylineno) + ": Syntax error near \"" + curTok + "\".");
+    error(curFileName + ", " + std::to_string(yylineno) +
+            ": Syntax error near \"" + curTok + "\".");
 }
 
 %parse_accept
@@ -45,6 +50,7 @@
 
     ASTNode *parse(const char *filename)
     {
+        curFileName = filename;
         void *parser = ParseAlloc(malloc);
         int tokenId;
 
@@ -73,7 +79,7 @@
 %right NOT.
 
 // Main program
-program ::= compoundStmt(STMTS). { rootNode = STMTS; }
+program ::= enterScope compoundStmt(STMTS) exitScope. { rootNode = STMTS; }
 
 // Compound statement
 %type compoundStmt { CompoundStmtNode * }
@@ -97,7 +103,7 @@ statement(A) ::= expr(EXPR) SEMICOLON. { A = new ExprStmtNode(EXPR); }
 // Connection
 statement(A) ::= ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
 {
-    A = new ExprStmtNode(new BinaryOpNode(Connection, IDENT, EXPR));
+    A = new ExprStmtNode(new BinaryOpNode(Operation::Connection, IDENT, EXPR));
 }
 
 // Wire definition
@@ -110,7 +116,7 @@ statement(A) ::= WIRE ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
     A = new WireDef(IDENT, EXPR);
 }
 
-// When statement TODO
+// When statement
 statement(A) ::= WHEN expr(CONDITION) SEMICOLON compoundStmt(STMTS) END.
 {
     CompoundStmtNode *emptyStmt = new CompoundStmtNode();
@@ -142,8 +148,34 @@ portList(A) ::= portList(PORTS) COMMA portDef(NEW_PORT).
 }
 
 %type portDef { Port * }
-portDef(A) ::= INPUT ident(IDENT).  { A = new Port(IDENT, Input); }
-portDef(A) ::= OUTPUT ident(IDENT). { A = new Port(IDENT, Output); }
+portDef(A) ::= INPUT ident(IDENT).
+{
+    if (symTable.isIdentInScope(IDENT->ident))
+    {
+        compileError = true;
+        error(curFileName + ", " + std::to_string(yylineno) +
+                ": Scope error: redefinition of identifier, \"" + IDENT->ident +
+                "\".");
+    }
+    else
+        symTable.insertSym(IDENT->ident, SymType::Input);
+
+    A = new Port(IDENT, Type::Input);
+}
+portDef(A) ::= OUTPUT ident(IDENT).
+{
+    if (symTable.isIdentInScope(IDENT->ident))
+    {
+        compileError = true;
+        error(curFileName + ", " + std::to_string(yylineno) +
+                ": Scope error: redefinition of identifier, \"" + IDENT->ident +
+                "\".");
+    }
+    else
+        symTable.insertSym(IDENT->ident, SymType::Output);
+
+    A = new Port(IDENT, Type::Output);
+}
 
 // Module intantiation
 statement(A) ::= ident(MOD_IDENT) ident(INST_IDENT) argumentList(ARG_LIST)
@@ -168,10 +200,22 @@ argumentList(A) ::= argumentList(ARG_LIST) COMMA expr(NEW_EXPR).
 // Expressions
 %type expr { ExprNode * }
 expr(A) ::= LBRACKET expr(EXPR) RBRACKET. { A = EXPR; }
-expr(A) ::= expr(LHS) AND expr(RHS). { A = new BinaryOpNode(And, LHS, RHS); }
-expr(A) ::= expr(LHS) OR expr(RHS).  { A = new BinaryOpNode(Or, LHS, RHS); }
-expr(A) ::= expr(LHS) XOR expr(RHS). { A = new BinaryOpNode(Xor, LHS, RHS); }
-expr(A) ::= NOT expr(EXPR). { A = new UnaryOpNode(Not, EXPR); }
+expr(A) ::= expr(LHS) AND expr(RHS).
+{
+    A = new BinaryOpNode(Operation::And, LHS, RHS);
+}
+expr(A) ::= expr(LHS) OR expr(RHS).
+{
+    A = new BinaryOpNode(Operation::Or, LHS, RHS);
+}
+expr(A) ::= expr(LHS) XOR expr(RHS).
+{
+    A = new BinaryOpNode(Operation::Xor, LHS, RHS);
+}
+expr(A) ::= NOT expr(EXPR).
+{
+    A = new UnaryOpNode(Operation::Not, EXPR);
+}
 
 // Boolean values
 expr(A) ::= TRUE.  { A = new BoolNode(true); }
@@ -183,3 +227,7 @@ expr(A) ::= ident(IDENT). { A = IDENT; }
 // Identifier
 %type ident { IdentNode * }
 ident(A) ::= IDENT(ID). { A = new IdentNode(ID); }
+
+// Scope
+enterScope ::= . { symTable.enterScope(); }
+exitScope ::= .  { symTable.exitScope();  }
