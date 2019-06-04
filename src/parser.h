@@ -2,8 +2,8 @@
 #define TOK_XOR                              2
 #define TOK_OR                               3
 #define TOK_NOT                              4
-#define TOK_CONNECTION                       5
-#define TOK_SEMICOLON                        6
+#define TOK_SEMICOLON                        5
+#define TOK_CONNECTION                       6
 #define TOK_WIRE                             7
 #define TOK_WHEN                             8
 #define TOK_END                              9
@@ -18,4 +18,5 @@
 #define TOK_FALSE                           18
 #define TOK_IDENT                           19
 
-    void parse(const char *filename);
+    #include "ast.hpp"
+    ASTNode *parse(const char *filename);

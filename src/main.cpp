@@ -3,5 +3,7 @@
 
 int main()
 {
-    parse("test.minihdl");
+    auto ast = parse("test.minihdl");
+    std::cout << ast->getString() << "\n";
+    delete ast;
 }

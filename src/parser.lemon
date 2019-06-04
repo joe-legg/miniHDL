@@ -1,6 +1,7 @@
 %header
 {
-    void parse(const char *filename);
+    #include "ast.hpp"
+    ASTNode *parse(const char *filename);
 }
 
 %include
@@ -8,9 +9,12 @@
     #include <iostream>
     #include <string>
     #include "error.hpp"
+    #include "ast.hpp"
 
     extern int yylineno;
-    std::string curTok; // Holds the current token
+
+    std::string curTok; // Holds the current token for syntax errors
+    ASTNode *rootNode;
 }
 
 %syntax_error
@@ -38,23 +42,26 @@
 {
     extern int yylex();
     extern char *yytext;
-    
-    void parse(const char *filename)
+
+    ASTNode *parse(const char *filename)
     {
         void *parser = ParseAlloc(malloc);
-        int token;
+        int tokenId;
 
         // Uncomment for debugging
         // ParseTrace(stdout, "Parser: ");
-
-        while ((token = yylex()))
+        
+        // Parse loop
+        while ((tokenId = yylex()))
         {
             curTok = yytext;
-            Parse(parser, token, curTok.c_str());
+            Parse(parser, tokenId, strdup(yytext));
         }
 
         Parse(parser, 0, NULL);
         ParseFree(parser, free);
+
+        return rootNode;
     }
 }
 
@@ -62,53 +69,117 @@
 %token_type   { const char * }
 
 // Operator precedence
-%left AND.
-%left XOR.
-%left OR.
+%left AND XOR OR.
 %right NOT.
 
 // Main program
-program ::= compoundStmt.
+program ::= compoundStmt(STMTS). { rootNode = STMTS; }
 
 // Compound statement
-compoundStmt ::= statement.
-compoundStmt ::= compoundStmt statement.
+%type compoundStmt { CompoundStmtNode * }
+compoundStmt(A) ::= statement(STMT).
+{
+    A = new CompoundStmtNode;
+    A->stmts.push_back(STMT);
+}
+compoundStmt(A) ::= compoundStmt(STMTS) statement(NEW_STMT).
+{
+    STMTS->stmts.push_back(NEW_STMT);
+    A = STMTS;
+}
+
+// Statement
+%type statement { StmtNode * }
+
+// Expression Statement
+statement(A) ::= expr(EXPR) SEMICOLON. { A = new ExprStmtNode(EXPR); }
 
 // Connection
-statement ::= ident CONNECTION expr SEMICOLON.
+statement(A) ::= ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
+{
+    A = new ExprStmtNode(new BinaryOpNode(Connection, IDENT, EXPR));
+}
 
 // Wire definition
-statement ::= WIRE ident SEMICOLON.
-statement ::= WIRE ident CONNECTION expr SEMICOLON.
+statement(A) ::= WIRE ident(IDENT) SEMICOLON.
+{
+    A = new WireDef(IDENT, new BoolNode(false));
+}
+statement(A) ::= WIRE ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
+{
+    A = new WireDef(IDENT, EXPR);
+}
 
-// When statement
-statement ::= WHEN expr SEMICOLON compoundStmt END.
-statement ::= WHEN expr SEMICOLON compoundStmt ELSE compoundStmt END.
+// When statement TODO
+statement(A) ::= WHEN expr(CONDITION) SEMICOLON compoundStmt(STMTS) END.
+{
+    CompoundStmtNode *emptyStmt = new CompoundStmtNode();
+    emptyStmt->stmts.push_back(new StmtNode());
+    A = new WhenElseStmtNode(CONDITION, STMTS, emptyStmt);
+}
+statement(A) ::= WHEN expr(CONDITION) SEMICOLON compoundStmt(STMTS) ELSE
+        compoundStmt(ELSE_STMTS) END.
+{
+    A = new WhenElseStmtNode(CONDITION, STMTS, ELSE_STMTS);
+}
 
 // Module definition
-statement ::= MODULE ident portList SEMICOLON compoundStmt END.
+statement(A) ::= MODULE ident(IDENT) portList(PORTS) SEMICOLON
+        compoundStmt(STMTS) END.
+{
+    A = new ModuleDef(IDENT, PORTS, STMTS);
+}
+%type portList { std::vector<Port> }
+portList(A) ::= portDef(PORT).
+{
+    A = std::vector<Port>();
+    A.push_back(*PORT);
+}
+portList(A) ::= portList(PORTS) COMMA portDef(NEW_PORT).
+{
+    PORTS.push_back(*NEW_PORT);
+    A = PORTS;
+}
 
-// Port list
-portList ::= portDef.
-portList ::= portList COMMA portDef.
-portDef ::= INPUT ident.
-portDef ::= OUTPUT ident.
+%type portDef { Port * }
+portDef(A) ::= INPUT ident(IDENT).  { A = new Port(IDENT, Input); }
+portDef(A) ::= OUTPUT ident(IDENT). { A = new Port(IDENT, Output); }
 
-// Module intatiation
-statement ::= ident ident argumentList SEMICOLON.
+// Module intantiation
+statement(A) ::= ident(MOD_IDENT) ident(INST_IDENT) argumentList(ARG_LIST)
+        SEMICOLON.
+{
+    A = new ModuleInstNode(MOD_IDENT, INST_IDENT, ARG_LIST);
+}
 
 // Argument list
-argumentList ::= expr.
-argumentList ::= argumentList COMMA expr.
+%type argumentList { std::vector<ExprNode *> }
+argumentList(A) ::= expr(EXPR).
+{
+    A = std::vector<ExprNode *>();
+    A.push_back(EXPR);
+}
+argumentList(A) ::= argumentList(ARG_LIST) COMMA expr(NEW_EXPR).
+{
+    ARG_LIST.push_back(NEW_EXPR);
+    A = ARG_LIST;
+}
 
-expr ::= LBRACKET expr RBRACKET.
-expr ::= expr AND expr.
-expr ::= expr OR expr.
-expr ::= expr XOR expr.
-expr ::= NOT expr.
-expr ::= TRUE.
-expr ::= FALSE.
-expr ::= ident.
+// Expressions
+%type expr { ExprNode * }
+expr(A) ::= LBRACKET expr(EXPR) RBRACKET. { A = EXPR; }
+expr(A) ::= expr(LHS) AND expr(RHS). { A = new BinaryOpNode(And, LHS, RHS); }
+expr(A) ::= expr(LHS) OR expr(RHS).  { A = new BinaryOpNode(Or, LHS, RHS); }
+expr(A) ::= expr(LHS) XOR expr(RHS). { A = new BinaryOpNode(Xor, LHS, RHS); }
+expr(A) ::= NOT expr(EXPR). { A = new UnaryOpNode(Not, EXPR); }
+
+// Boolean values
+expr(A) ::= TRUE.  { A = new BoolNode(true); }
+expr(A) ::= FALSE. { A = new BoolNode(false); }
+
+// Identifiers
+expr(A) ::= ident(IDENT). { A = IDENT; }
 
 // Identifier
-ident ::= IDENT.
+%type ident { IdentNode * }
+ident(A) ::= IDENT(ID). { A = new IdentNode(ID); }

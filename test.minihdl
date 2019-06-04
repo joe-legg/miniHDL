@@ -1,10 +1,10 @@
-when true;
-    b <- true;
+when true and false;
+    b <- a and true;
+end
 
 mod testModule inp a, out b;
-    when true;
-        b <- true and true;
-    else
-        b <- false;
-    end
+    wire testWire <- true xor false;
+    b <- a and false;
 end
+
+testModule modInst true, false;
