@@ -1,4 +1,5 @@
 mod testModule inp a, out b;
     wire testWire <- true xor false;
-    b <- a and false;
+    a <- a and false;
+    sdflksdk <- true;
 end

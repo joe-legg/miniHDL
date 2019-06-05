@@ -103,12 +103,32 @@ statement(A) ::= expr(EXPR) SEMICOLON. { A = new ExprStmtNode(EXPR); }
 // Connection
 statement(A) ::= ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
 {
+    // TODO: Semantic checks
+    if (symTable.isIdentInScope(IDENT->ident))
+    {
+        Symbol sym = symTable.lookupSym(IDENT->ident);
+        if (sym.type != SymType::Output && sym.type != SymType::Wire)
+        {
+            compileError = true;
+            error(curFileName + ", " + std::to_string(yylineno) +
+                    ": Type error: Identifier, \"" + IDENT->ident +
+                    "\", cannot be connected to an expression.");
+        }
+    }
+    else
+    {
+        compileError = true;
+        error(curFileName + ", " + std::to_string(yylineno) +
+                ": Scope Error: Identifier, \"" + IDENT->ident +
+                "\", is not in scope.");
+    }
     A = new ExprStmtNode(new BinaryOpNode(Operation::Connection, IDENT, EXPR));
 }
 
 // Wire definition
 statement(A) ::= WIRE ident(IDENT) SEMICOLON.
 {
+    // TODO: Semantic checks
     A = new WireDef(IDENT, new BoolNode(false));
 }
 statement(A) ::= WIRE ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
@@ -133,6 +153,7 @@ statement(A) ::= WHEN expr(CONDITION) SEMICOLON compoundStmt(STMTS) ELSE
 statement(A) ::= MODULE ident(IDENT) portList(PORTS) SEMICOLON
         compoundStmt(STMTS) END.
 {
+    // TODO: Semantic checks
     A = new ModuleDef(IDENT, PORTS, STMTS);
 }
 %type portList { std::vector<Port> }
@@ -221,7 +242,7 @@ expr(A) ::= NOT expr(EXPR).
 expr(A) ::= TRUE.  { A = new BoolNode(true); }
 expr(A) ::= FALSE. { A = new BoolNode(false); }
 
-// Identifiers
+// Identifiers TODO: Semantic checks
 expr(A) ::= ident(IDENT). { A = IDENT; }
 
 // Identifier
