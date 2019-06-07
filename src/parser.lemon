@@ -103,7 +103,6 @@ statement(A) ::= expr(EXPR) SEMICOLON. { A = new ExprStmtNode(EXPR); }
 // Connection
 statement(A) ::= ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
 {
-    // TODO: Semantic checks
     if (symTable.isIdentInScope(IDENT->ident))
     {
         Symbol sym = symTable.lookupSym(IDENT->ident);
@@ -150,8 +149,8 @@ statement(A) ::= WHEN expr(CONDITION) SEMICOLON compoundStmt(STMTS) ELSE
 }
 
 // Module definition
-statement(A) ::= MODULE ident(IDENT) portList(PORTS) SEMICOLON
-        compoundStmt(STMTS) END.
+statement(A) ::= MODULE ident(IDENT) enterScope portList(PORTS) SEMICOLON
+        compoundStmt(STMTS) exitScope END.
 {
     // TODO: Semantic checks
     A = new ModuleDef(IDENT, PORTS, STMTS);

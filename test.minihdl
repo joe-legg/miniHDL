@@ -3,3 +3,6 @@ mod testModule inp a, out b;
     a <- a and false;
     sdflksdk <- true;
 end
+
+mod testModule inp a, out b;
+end
