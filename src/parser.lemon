@@ -23,6 +23,7 @@
 
 %syntax_error
 {
+    compileError = true;
     error(curFileName + ", " + std::to_string(yylineno) +
             ": Syntax error near \"" + curTok + "\".");
 }
@@ -34,11 +35,13 @@
 
 %parse_failure
 {
+    compileError = true;
     error("Parse failure.");
 }
 
 %stack_overflow
 {
+    compileError = true;
     error("Stack overflow.");
 }
 
@@ -127,7 +130,6 @@ statement(A) ::= ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
 // Wire definition
 statement(A) ::= WIRE ident(IDENT) SEMICOLON.
 {
-    // TODO: Semantic checks
     if (symTable.isIdentInScope(IDENT->ident))
     {
         compileError = true;
@@ -268,8 +270,29 @@ expr(A) ::= NOT expr(EXPR).
 expr(A) ::= TRUE.  { A = new BoolNode(true); }
 expr(A) ::= FALSE. { A = new BoolNode(false); }
 
-// Identifiers TODO: Semantic checks
-expr(A) ::= ident(IDENT). { A = IDENT; }
+// Identifiers
+expr(A) ::= ident(IDENT).
+{
+    if (!symTable.isIdentInScope(IDENT->ident))
+    {
+        compileError = true;
+        error(curFileName + ", " + std::to_string(yylineno) +
+                ": Scope Error: Identifier, \"" + IDENT->ident +
+                "\", is not in scope.");
+    }
+    else
+    {
+        Symbol sym = symTable.lookupSym(IDENT->ident);
+        if (sym.type != SymType::Input && sym.type != SymType::Wire)
+        {
+            compileError = true;
+            error(curFileName + ", " + std::to_string(yylineno) +
+                    ": Type error: Identifier, \"" + IDENT->ident +
+                    "\", is not a value.");
+        }
+    }
+    A = IDENT;
+}
 
 // Identifier
 %type ident { IdentNode * }

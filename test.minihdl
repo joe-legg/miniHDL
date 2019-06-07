@@ -1,5 +1,6 @@
 mod testModule inp a, out b;
     wire testWire <- true xor false;
-    wire testWire;
     b <- a and false;
+    b and true or a and testWire;
 end
+
