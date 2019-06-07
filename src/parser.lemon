@@ -128,10 +128,28 @@ statement(A) ::= ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
 statement(A) ::= WIRE ident(IDENT) SEMICOLON.
 {
     // TODO: Semantic checks
+    if (symTable.isIdentInScope(IDENT->ident))
+    {
+        compileError = true;
+        error(curFileName + ", " + std::to_string(yylineno) +
+                ": Scope error: redefinition of wire, \"" + IDENT->ident +
+                "\".");
+    }
+    else
+        symTable.insertSym(IDENT->ident, SymType::Wire);
     A = new WireDef(IDENT, new BoolNode(false));
 }
 statement(A) ::= WIRE ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
 {
+    if (symTable.isIdentInScope(IDENT->ident))
+    {
+        compileError = true;
+        error(curFileName + ", " + std::to_string(yylineno) +
+                ": Scope error: redefinition of wire, \"" + IDENT->ident +
+                "\".");
+    }
+    else
+        symTable.insertSym(IDENT->ident, SymType::Wire);
     A = new WireDef(IDENT, EXPR);
 }
 
@@ -160,7 +178,7 @@ statement(A) ::= MODULE ident(IDENT) enterScope portList(PORTS) SEMICOLON
                 "\".");
     }
     else
-        symTable.insertSym(IDENT->ident, SymType::Input);
+        symTable.insertSym(IDENT->ident, SymType::ModuleDef);
 
     A = new ModuleDef(IDENT, PORTS, STMTS);
 }
