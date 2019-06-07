@@ -152,7 +152,16 @@ statement(A) ::= WHEN expr(CONDITION) SEMICOLON compoundStmt(STMTS) ELSE
 statement(A) ::= MODULE ident(IDENT) enterScope portList(PORTS) SEMICOLON
         compoundStmt(STMTS) exitScope END.
 {
-    // TODO: Semantic checks
+    if (symTable.isIdentInScope(IDENT->ident))
+    {
+        compileError = true;
+        error(curFileName + ", " + std::to_string(yylineno) +
+                ": Scope error: redefinition of module, \"" + IDENT->ident +
+                "\".");
+    }
+    else
+        symTable.insertSym(IDENT->ident, SymType::Input);
+
     A = new ModuleDef(IDENT, PORTS, STMTS);
 }
 %type portList { std::vector<Port> }
