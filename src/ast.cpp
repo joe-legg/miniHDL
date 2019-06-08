@@ -10,11 +10,11 @@ WireDef::~WireDef()           { delete ident; delete expr; }
 ExprStmtNode::~ExprStmtNode() { delete expr; }
 UnaryOpNode::~UnaryOpNode()   { delete expr; }
 
-WhenElseStmtNode::~WhenElseStmtNode()
+WhenElseExprNode::~WhenElseExprNode()
 {
     delete condition;
-    delete stmts;
-    delete elseStmts;
+    delete expr;
+    delete elseExpr;
 }
 
 CompoundStmtNode::~CompoundStmtNode()
@@ -39,25 +39,25 @@ std::string ExprNode::getString() { return ""; }
 
 std::string BoolNode::getString()
 {
-    return value ? "Bool Val: true" : "Bool Val: false";
+    return value ? "Bool Val: {true}" : "Bool Val: {false}";
 }
 
 
 std::string BinaryOpNode::getString()
 {
-    return "Binary Operation: {" + left->getString() + ", Operation: " + 
-            std::to_string((int)op) + ", " + right->getString() + "}";
+    return "Binary Operation: {" + left->getString() + ", Operation: {" + 
+            std::to_string((int)op) + "}, " + right->getString() + "}";
 }
 
 std::string UnaryOpNode::getString()
 {
-    return "Unary Operation: {Operation: " + std::to_string((int)op) +
-            ", " + expr->getString() + "}";
+    return "Unary Operation: {Operation: {" + std::to_string((int)op) +
+            "}, " + expr->getString() + "}";
 }
 
 std::string IdentNode::getString()
 {
-    return "Ident: \"" + ident + "\"";
+    return "Ident: {" + ident + "}";
 }
 
 std::string ExprStmtNode::getString()
@@ -80,11 +80,11 @@ std::string CompoundStmtNode::getString()
     return "Compound Statement: {" + stmtString + "}";
 }
 
-std::string WhenElseStmtNode::getString()
+std::string WhenElseExprNode::getString()
 {
     return "When else stmt: {Condition: {" + condition->getString() +
-            "}, Statements: {" + stmts->getString() + "}, Else statements: {" +
-            elseStmts->getString() + "}}";
+            "}, Statements: {" + expr->getString() + "}, Else statements: {" +
+            elseExpr->getString() + "}}";
 }
 
 std::string ModuleInstNode::getString()

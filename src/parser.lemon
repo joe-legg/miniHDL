@@ -15,9 +15,11 @@
     extern int yylineno;
 
     std::string curTok; // Holds the current token for syntax errors
-    std::string curFileName; // Holds the name of the current file being compiled
-    SymbolTable symTable;
+    // Holds the name of the current file being compiled
+    std::string curFileName;
     bool compileError = false;
+
+    SymbolTable symTable;
     ASTNode *rootNode;
 }
 
@@ -59,7 +61,7 @@
 
         // Uncomment for debugging
         // ParseTrace(stdout, "Parser: ");
-        
+
         // Parse loop
         while ((tokenId = yylex()))
         {
@@ -69,6 +71,9 @@
 
         Parse(parser, 0, NULL);
         ParseFree(parser, free);
+
+        if (compileError)
+            exit(0); // Exit if there is a compile error
 
         return rootNode;
     }
@@ -99,9 +104,6 @@ compoundStmt(A) ::= compoundStmt(STMTS) statement(NEW_STMT).
 
 // Statement
 %type statement { StmtNode * }
-
-// Expression Statement
-statement(A) ::= expr(EXPR) SEMICOLON. { A = new ExprStmtNode(EXPR); }
 
 // Connection
 statement(A) ::= ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
@@ -155,19 +157,6 @@ statement(A) ::= WIRE ident(IDENT) CONNECTION expr(EXPR) SEMICOLON.
     A = new WireDef(IDENT, EXPR);
 }
 
-// When statement
-statement(A) ::= WHEN expr(CONDITION) SEMICOLON compoundStmt(STMTS) END.
-{
-    CompoundStmtNode *emptyStmt = new CompoundStmtNode();
-    emptyStmt->stmts.push_back(new StmtNode());
-    A = new WhenElseStmtNode(CONDITION, STMTS, emptyStmt);
-}
-statement(A) ::= WHEN expr(CONDITION) SEMICOLON compoundStmt(STMTS) ELSE
-        compoundStmt(ELSE_STMTS) END.
-{
-    A = new WhenElseStmtNode(CONDITION, STMTS, ELSE_STMTS);
-}
-
 // Module definition
 statement(A) ::= MODULE ident(IDENT) enterScope portList(PORTS) SEMICOLON
         compoundStmt(STMTS) exitScope END.
@@ -185,6 +174,7 @@ statement(A) ::= MODULE ident(IDENT) enterScope portList(PORTS) SEMICOLON
     A = new ModuleDef(IDENT, PORTS, STMTS);
 }
 %type portList { std::vector<Port> }
+portList(A) ::= . { A = std::vector<Port>(); }
 portList(A) ::= portDef(PORT).
 {
     A = std::vector<Port>();
@@ -264,6 +254,13 @@ expr(A) ::= expr(LHS) XOR expr(RHS).
 expr(A) ::= NOT expr(EXPR).
 {
     A = new UnaryOpNode(Operation::Not, EXPR);
+}
+
+// When expr
+expr(A) ::= WHEN LBRACKET expr(CONDITION) RBRACKET expr(EXPR) ELSE
+        expr(ELSE_EXPR) END.
+{
+    A = new WhenElseExprNode(CONDITION, EXPR, ELSE_EXPR);
 }
 
 // Boolean values

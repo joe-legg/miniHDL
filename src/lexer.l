@@ -1,5 +1,6 @@
 %{
     #include "parser.h"
+    #include "error.hpp"
 %}
 
 %option nounput
@@ -36,6 +37,6 @@ end   return TOK_END;
 " " {}
 \n {}
 \t {}
-. return 999999;
+. {};
 
 %%

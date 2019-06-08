@@ -1,6 +1,35 @@
-mod testModule inp a, out b;
-    wire testWire <- true xor false;
-    b <- a and false;
-    b and true or a and testWire;
+// Test module
+mod aAndTrue inp a, out b;
+    b <- a and true;
 end
 
+// Test modules without ports
+mod testModule;
+    // Test boolean values
+    wire trueWire <- true;
+    wire falseWire <- false;
+
+    // Test binary operations
+    wire andWire <- true and false;
+    wire orWire <- true or false;
+    wire xorWire <- true xor false;
+
+    // Test unary operations
+    wire notWire <- not true;
+
+    // Test wires
+    wire a;
+    wire b <- false;
+    
+    // Test connections
+    a <- true and b;
+
+    // Test when else
+    wire whenElseWire <- when (true) false else true end;
+
+    // Test module instances
+    wire modOutput;
+    aAndTrue instance
+        true or false,
+        modOutput;
+end

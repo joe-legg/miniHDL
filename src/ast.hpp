@@ -10,7 +10,7 @@ enum class Type { Input, Output };
 class ASTNode
 {
   public:
-    virtual void codeGen(); 
+    virtual std::string codeGen(); 
     virtual std::string getString();
     virtual ~ASTNode();
 };
@@ -18,12 +18,14 @@ class ASTNode
 class ExprNode : public ASTNode
 {
   public:
+    std::string codeGen(); 
     std::string getString();
 };
 
 class StmtNode : public ASTNode
 {
   public:
+    std::string codeGen(); 
     std::string getString();
 };
 
@@ -34,6 +36,7 @@ class BoolNode : public ExprNode
   public:
     bool value;
 
+    std::string codeGen(); 
     std::string getString();
     BoolNode(bool value) : value(value) {}
 };
@@ -45,6 +48,7 @@ class BinaryOpNode : public ExprNode
     ExprNode *left;
     ExprNode *right;
 
+    std::string codeGen(); 
     std::string getString();
     BinaryOpNode(Operation op, ExprNode *left, ExprNode *right) : op(op),
             left(left), right(right) {}
@@ -57,6 +61,7 @@ class UnaryOpNode : public ExprNode
     Operation op;
     ExprNode *expr;
 
+    std::string codeGen(); 
     std::string getString();
     UnaryOpNode(Operation op, ExprNode *expr) : op(op), expr(expr) {}
     ~UnaryOpNode();
@@ -67,8 +72,24 @@ class IdentNode : public ExprNode
   public:
     std::string ident;
 
+    std::string codeGen(); 
     std::string getString();
     IdentNode(std::string ident) : ident(ident) {}
+};
+
+class WhenElseExprNode : public ExprNode
+{
+  public:
+    ExprNode *condition;
+    ExprNode *expr;
+    ExprNode *elseExpr;
+
+    std::string codeGen();
+    std::string getString();
+    WhenElseExprNode(ExprNode *condition, ExprNode *expr,
+            ExprNode *elseExpr) : condition(condition), expr(expr),
+            elseExpr(elseExpr) {}
+    ~WhenElseExprNode();
 };
 
 // Statement nodes
@@ -79,6 +100,7 @@ class WireDef : public StmtNode
     IdentNode *ident;
     ExprNode *expr;
 
+    std::string codeGen(); 
     std::string getString();
     WireDef(IdentNode *ident, ExprNode *expr) : ident(ident), expr(expr) {}
     ~WireDef();
@@ -89,6 +111,7 @@ class CompoundStmtNode : public StmtNode
   public:
     std::vector<StmtNode *> stmts;
 
+    std::string codeGen(); 
     std::string getString();
     ~CompoundStmtNode();
 };
@@ -98,23 +121,10 @@ class ExprStmtNode : public StmtNode
   public:
     ExprNode *expr;
 
+    std::string codeGen(); 
     std::string getString();
     ExprStmtNode(ExprNode *expr) : expr(expr) {}
     ~ExprStmtNode();
-};
-
-class WhenElseStmtNode : public StmtNode
-{
-  public:
-    ExprNode *condition;
-    CompoundStmtNode *stmts;
-    CompoundStmtNode *elseStmts;
-
-    std::string getString();
-    WhenElseStmtNode(ExprNode *condition, CompoundStmtNode *stmts,
-            CompoundStmtNode *elseStmts) : condition(condition), stmts(stmts),
-            elseStmts(elseStmts) {}
-    ~WhenElseStmtNode();
 };
 
 class ModuleInstNode : public StmtNode
@@ -124,6 +134,7 @@ class ModuleInstNode : public StmtNode
     IdentNode *instIdent;
     std::vector<ExprNode *> args;
 
+    std::string codeGen(); 
     std::string getString();
     ModuleInstNode(IdentNode *moduleIdent, IdentNode *instIdent,
             std::vector<ExprNode *> args) : moduleIdent(moduleIdent),
@@ -147,6 +158,7 @@ class ModuleDef : public StmtNode
     std::vector<Port> portList;
     CompoundStmtNode *stmts;
 
+    std::string codeGen(); 
     std::string getString();
     ModuleDef(IdentNode *ident, std::vector<Port> portList,
             CompoundStmtNode *stmts) : ident(ident), portList(portList),

@@ -18,12 +18,12 @@ mod fullAdder inp a,
 
     cout <- co1 or co2;
 
-    halfAdder hAdd1:
+    halfAdder hAdd1
         a,
         b,
         sum1,
         co1;
-    halfAdder hAdd2:
+    halfAdder hAdd2
         sum1,
         cin,
         sum,

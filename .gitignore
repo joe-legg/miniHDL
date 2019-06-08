@@ -2,3 +2,4 @@ src/parser.cpp
 src/parser.out
 src/lex.yy.c
 bin/
+*.o
