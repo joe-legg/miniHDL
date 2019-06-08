@@ -2,8 +2,7 @@
 The compiler for a mini hardware description language that compiles to Verilog.
 
 ### ! WARNING !
-This is my first compiler so expect to find lots of bugs and badly written code.
-Also, it is incomplete. I am currently working on a rewrite with more features.
+This is my first compiler so expect to find lots of bugs and badly written code, it is incomplete but I am currently working on a rewrite with more features.
 
 ## Compiling
 To compile miniHDL from source you will need the following programs.
@@ -29,7 +28,7 @@ $ sudo cp bin/minihdl /usr/bin
 ```
 
 ## A miniHDL Tutorial
-miniHDL is made up of modules whitch are made up of boolean expressions. Here is
+miniHDL is made up of modules which are made up of boolean expressions. Here is
 an example module.
 ```
 mod moduleName inp a, out b;
