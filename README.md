@@ -2,7 +2,7 @@
 The compiler for a mini hardware description language that compiles to Verilog.
 
 ### ! WARNING !
-This is my first compiler so expect to find lots of bugs and badly written code, it is incomplete but I am currently working on a rewrite with more features.
+This is my first compiler so expect to find lots of bugs and badly written code.
 
 ## Compiling
 To compile miniHDL from source you will need the following programs.
@@ -73,24 +73,14 @@ Module instantiation.
 moduleName instanceName port1, port2;
 ```
 
-### Features Currently Not Implemented
+Wires.
 ```
 wire testWire;
 
 testWire <- a xor b;
 c <- testWire or true;
 ```
-When statement.
-```
-when binaryExpression;
-    a <- b xor not c;
-end
-```
 When, else.
 ```
-when binaryExpression;
-    a <- b xor not c;
-else
-    a <- not b;
-end
+a <- when (true) false else true end;
 ```

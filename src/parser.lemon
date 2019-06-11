@@ -8,6 +8,7 @@
 {
     #include <iostream>
     #include <string>
+
     #include "error.hpp"
     #include "ast.hpp"
     #include "symbolTable.hpp"
@@ -169,7 +170,12 @@ statement(A) ::= MODULE ident(IDENT) enterScope portList(PORTS) SEMICOLON
                 "\".");
     }
     else
-        symTable.insertSym(IDENT->ident, SymType::ModuleDef);
+    {
+        std::vector<SymType> portTypes;
+        for (int i = 0; i < PORTS.size(); i++)
+            portTypes.push_back((SymType)PORTS[i].type);
+        symTable.insertSym(IDENT->ident, SymType::ModuleDef, portTypes);
+    }
 
     A = new ModuleDef(IDENT, PORTS, STMTS);
 }
@@ -220,6 +226,42 @@ portDef(A) ::= OUTPUT ident(IDENT).
 statement(A) ::= ident(MOD_IDENT) ident(INST_IDENT) argumentList(ARG_LIST)
         SEMICOLON.
 {
+    Symbol module = symTable.lookupSym(MOD_IDENT->ident);
+    if (ARG_LIST.size() != module.ports.size())
+    {
+        compileError = true;
+        error(curFileName + ", " + std::to_string(yylineno) +
+                ": Instantiation error: Not enough or to many arguments in module instantiation.");
+    }
+    else
+    {
+        for (int i = 0; i < ARG_LIST.size(); i++)
+        {
+            if (module.ports[i] == SymType::Output)
+            {
+                if (dynamic_cast<IdentNode *>(ARG_LIST[i]) != nullptr)
+                {
+                    Symbol curArg = symTable.lookupSym(
+                            ((IdentNode *)ARG_LIST[i])->ident);
+                    if (curArg.type != SymType::Wire && curArg.type !=
+                            SymType::Output)
+                    {
+                        compileError = true;
+                        error(curFileName + ", " + std::to_string(yylineno) +
+                                ": Type error: Identifier, " +
+                                ((IdentNode *)ARG_LIST[i])->ident +
+                                ", is not a wire or output.");
+                    }
+                }
+                else
+                {
+                    compileError = true;
+                    error(curFileName + ", " + std::to_string(yylineno) +
+                            ": Type error: Argument must be an identifier.");
+                }
+            }
+        }
+    }
     A = new ModuleInstNode(MOD_IDENT, INST_IDENT, ARG_LIST);
 }
 
@@ -229,6 +271,11 @@ argumentList(A) ::= expr(EXPR).
 {
     A = std::vector<ExprNode *>();
     A.push_back(EXPR);
+}
+argumentList(A) ::= ident(IDENT).
+{
+    A = std::vector<ExprNode *>();
+    A.push_back(IDENT);
 }
 argumentList(A) ::= argumentList(ARG_LIST) COMMA expr(NEW_EXPR).
 {
@@ -277,17 +324,17 @@ expr(A) ::= ident(IDENT).
                 ": Scope Error: Identifier, \"" + IDENT->ident +
                 "\", is not in scope.");
     }
-    else
-    {
-        Symbol sym = symTable.lookupSym(IDENT->ident);
-        if (sym.type != SymType::Input && sym.type != SymType::Wire)
-        {
-            compileError = true;
-            error(curFileName + ", " + std::to_string(yylineno) +
-                    ": Type error: Identifier, \"" + IDENT->ident +
-                    "\", is not a value.");
-        }
-    }
+    //else
+    //{
+    //    Symbol sym = symTable.lookupSym(IDENT->ident);
+    //    if (sym.type != SymType::Input && sym.type != SymType::Wire)
+    //    {
+    //        compileError = true;
+    //        error(curFileName + ", " + std::to_string(yylineno) +
+    //               ": Type error: Identifier, \"" + IDENT->ident +
+    //                "\", is not a value.");
+    //    }
+    //}
     A = IDENT;
 }
 

@@ -1,3 +1,4 @@
+
 #ifndef SYMBOL_TABLE_H
 #define SYMBOL_TABLE_H
 
@@ -11,6 +12,7 @@ class Symbol
   public:
     std::string symbol;
     SymType type;
+    std::vector<SymType> ports; // Hold the ports for Module definitions
 };
 
 class SymbolTable
@@ -20,7 +22,7 @@ class SymbolTable
 
   public:
     // Symbols
-    void insertSym(std::string symbol, SymType type);
+    void insertSym(std::string symbol, SymType type, std::vector<SymType> ports = {});
     Symbol lookupSym(std::string symbol);
     bool isIdentInScope(std::string symbol);
 
